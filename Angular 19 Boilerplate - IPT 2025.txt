@@ -1,0 +1,798 @@
+﻿Node.js + MySQL - Boilerplate API with Email Sign Up, Verification, Authentication & Forgot Password
+
+
+How to build a boilerplate sign up and authentication API with Node.js and MySQL that includes:
+
+
+* Email sign up and verification
+* JWT authentication with refresh tokens
+* Role based authorization with support for two roles (User & Admin)
+* Forgot password and reset password functionality
+* Account management (CRUD) routes with role based access control
+* Swagger api documentation route
+
+
+Node + MySQL Boilerplate Overview
+
+
+There are no users registered in the node.js boilerplate api by default, in order to authenticate you must first register and verify an account. The api sends a verification email after registration with a token to verify the account. Email SMTP settings must be set in the config.json file for email to work correctly, you can create a free test account in one click at https://ethereal.email/ and copy the options below the title Nodemailer configuration.
+The first account registered is assigned to the Admin role and subsequent accounts are assigned to the regular User role. Admins have full access to CRUD routes for managing all accounts, while regular users can only modify their own account.
+JWT authentication with refresh tokens
+Authentication is implemented with JWT access tokens and refresh tokens. On successful authentication the boilerplate api returns a short lived JWT access token that expires after 15 minutes, and a refresh token that expires after 7 days in a HTTP Only cookie. The JWT is used for accessing secure routes on the api and the refresh token is used for generating new JWT access tokens when (or just before) they expire. HTTP Only cookies are used for increased security because they are not accessible to client-side javascript which prevents XSS (cross site scripting), and the refresh token can only be used to fetch a new JWT token from the /accounts/refresh-token route which prevents CSRF (cross site request forgery).
+Refresh token rotation
+As an added security measure in the refreshToken() method of the account service, each time a refresh token is used to generate a new JWT token, the refresh token is revoked and replaced by a new refresh token. This technique is known as Refresh Token Rotation and increases security by reducing the lifetime of refresh tokens, which makes it less likely that a compromised token will be valid (or valid for long). When a refresh token is rotated the new token is saved in the replacedByToken property of the revoked token to create an audit trail in the MySQL database.
+Node.js + MySQL Boilerplate API Project Structure
+This project is structured into feature folders (accounts) and non-feature / shared component folders (_helpers, _middleware). Shared component folders contain code that can be used by multiple features and other parts of the application, and are prefixed with an underscore _ to group them together and make it easy to differentiate between feature folders and non-feature folders.
+The boilerplate example only contains a single (accounts) feature at the moment, but could be easily extended with other features by copying the accounts folder and following the same pattern.
+Project structure: 
+  
+
+Helpers Folder
+Path: /_helpers
+The helpers folder contains all the bits and pieces that don't fit into other folders but don't justify having a folder of their own.
+MySQL Database Wrapper
+Path: /_helpers/db.js
+The MySQL database wrapper connects to MySQL using Sequelize and the MySQL2 client, and exports an object containing all of the database model objects in the application (currently only Account and RefreshToken). It provides an easy way to access any part of the database from a single point.
+The initialize() function is executed once on api startup and performs the following actions:
+* Connects to MySQL server using the mysql2 db client and executes a query to create the database if it doesn't already exist.
+* Connects to the database with the Sequelize ORM.
+* Initializes the Account and RefreshToken models and attaches them to the exported db object.
+* Defines the one-to-many relationship between accounts and refresh tokens and configures refresh tokens to be deleted when the account they belong to is deleted.
+* Automatically creates tables in MySQL database if they don't exist by calling await sequelize.sync(). For more info on Sequelize model synchronization options see https://sequelize.org/master/manual/model-basics.html#model-synchronization.
+  
+
+Role Object / Enum
+Path: /_helpers/role.js
+The role object defines all the roles in the example application. I created it to use like an enum to avoid passing roles around as strings, so instead of 'Admin' and 'User' we can use Role.Admin and Role.User.
+  
+
+Send Email Helper
+Path: /_helpers/send-email.js
+The send email helper is a lightweight wrapper around the nodemailer module to simplify sending emails from anywhere in the application. It is used by the account service to send account verification and password reset emails.
+  
+
+Swagger API Docs Route Handler (/api-docs)
+Path: /_helpers/swagger.js
+The Swagger docs route handler uses the Swagger UI Express module to serve auto-generated Swagger UI documentation based on the swagger.yaml file from the /api-docs path of the api. The route handler is bound to the /api-docs path in the main server.js file.
+  
+
+For more info on swagger-ui-express see https://www.npmjs.com/package/swagger-ui-express.
+  
+  
+  
+
+Express.js Middleware Folder
+Path: /_middleware
+The middleware folder contains Express.js middleware functions that can be used by different routes / features within the Node.js boilerplate api.
+Authorize Middleware
+Path: /_middleware/authorize.js
+The authorized middleware can be added to any route to restrict access to the route to authenticated users with specified roles. If the roles parameter is omitted (i.e. authorize()) then the route will be accessible to all authenticated users regardless of role. It is used by the accounts controller to restrict access to account CRUD routes and revoke token routes.
+The authorize function returns an array containing two middleware functions:
+* The first (jwt({ ... })) authenticates the request by validating the JWT access token in the "Authorization" header of the http request. On successful authentication a user object is attached to the req object that contains the data from the JWT token, which in this example includes the user id (req.user.id).
+* The second authorizes the request by checking that the authenticated account still exists and is authorized to access the requested route based on its role. The second middleware function also attaches the role property and the ownsToken method to the req.user object so they can be accessed by controller functions.
+If either authentication or authorization fails then a 401 Unauthorized response is returned.
+  
+  
+
+Global Error Handler Middleware
+Path: /_middleware/error-handler.js
+The global error handler is used to catch all errors and remove the need for duplicated error handling code throughout the boilerplate application. It's configured as middleware in the main server.js file.
+By convention errors of type 'string' are treated as custom (app specific) errors, this simplifies the code for throwing custom errors since only a string needs to be thrown (e.g. throw 'Invalid token'). Further to this if a custom error ends with the words 'not found' a 404 response code is returned, otherwise a standard 400 response is returned. See the account service for some examples of custom errors thrown by the api, errors are caught in the accounts controller for each route and passed to next(err) which passes them to this global error handler.
+  
+
+Validate Request Middleware
+Path: /_middleware/validate-request.js
+The validate request middleware function validates the body of a request against a Joi schema object.
+It is used by schema middleware functions in controllers to validate the request against the schema for a specific route (e.g. authenticateSchema in the accounts controller).
+  
+
+Accounts Feature Folder
+Path: /accounts
+The accounts folder contains all code that is specific to the accounts feature of the node.js + mysql boilerplate api.
+Sequelize Account Model
+Path: /accounts/account.model.js
+The account model uses Sequelize to define the schema for the accounts table in the MySQL database. The exported Sequelize model object gives full access to perform CRUD (create, read, update, delete) operations on accounts in MySQL, see the account service below for examples of it being used (via the db helper).
+Fields with the type DataTypes.VIRTUAL are sequelize virtual fields that are not persisted in the database, they are convenience properties on the model that can include multiple field values (e.g. isVerified).
+The defaultScope configures the model to exclude the password hash from query results by default. The withHash scope can be used to query accounts and include the password hash field in results.
+The one-to-many relationship between accounts and refresh tokens is defined in the database wrapper.
+  
+  
+
+
+
+Sequelize Refresh Token Model
+Path: /accounts/refresh-token.model.js
+The refresh token model uses Sequelize to define the schema for the refreshTokens table in the MySQL database. The exported Sequelize model object gives full access to perform CRUD (create, read, update, delete) operations on refresh tokens in MySQL, see the account service below for examples of it being used (via the db helper).
+The DataTypes.VIRTUAL properties are convenience properties available on the sequelize model that don't get persisted to the MySQL database.
+The one-to-many relationship between accounts and refresh tokens is defined in the database wrapper.
+  
+
+  
+
+Account Service
+Path: /accounts/account.service.js
+The account service contains the core business logic for account sign up & verification, authentication with JWT & refresh tokens, forgot password & reset password functionality, as well as CRUD methods for managing account data. The service encapsulates all interaction with the sequelize account models and exposes a simple set of methods which are used by the accounts controller.
+The top of the file contains the exported service object with just the method names to make it easy to see all the methods at a glance, the rest of the file contains the implementation functions for each service method, followed by local helper functions.
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+  
+  
+  
+  
+  
+  
+  
+  
+
+Express.js Accounts Controller
+Path: /accounts/accounts.controller.js
+The accounts controller defines all /accounts routes for the Node.js + MySQL boilerplate api, the route definitions are grouped together at the top of the file and the implementation functions are below, followed by local helper functions. The controller is bound to the /accounts path in the main server.js file.
+Routes that require authorization include the middleware function authorize() and optionally specify a role (e.g. authorize(Role.Admin), if a role is specified then the route is restricted to users in that role, otherwise the route is restricted to all authenticated users regardless of role. The auth logic is located in the authorize middleware.
+The route functions revokeToken, getById, update and _delete include an extra custom authorization check to prevent non-admin users from accessing accounts other than their own. So regular user accounts (Role.User) have CRUD access to their own account but not to others, and admin accounts (Role.Admin) have full CRUD access to all accounts.
+Routes that require schema validation include a middleware function with the naming convention <route>Schema (e.g. authenticateSchema). Each schema validation function defines a schema for the request body using the Joi library and calls validateRequest(req, next, schema) to ensure the request body is valid. If validation succeeds the request continues to the next middleware function (the route function), otherwise an error is returned with details of why validation failed. For more info about Joi schema validation see https://www.npmjs.com/package/joi.
+Express is the web server used by the boilerplate api, it's one of the most popular web application frameworks for Node.js. For more info see https://expressjs.com/.
+  
+  
+  
+  
+  
+  
+  
+  
+  
+
+Api Config
+Path: /config.json
+The api config file contains configuration data for the boilerplate api, it includes the database connection options for the MySQL database, the secret used for signing and verifying JWT tokens, the emailFrom address used to send emails, and the smtpOptions used to connect and authenticate with an email server.
+Configure SMTP settings for email within the smtpOptions property. For testing you can create a free account in one click at https://ethereal.email/ and copy the options below the title Nodemailer configuration.
+IMPORTANT: The secret property is used to sign and verify JWT tokens for authentication, change it with your own random string to ensure nobody else can generate a JWT with the same secret to gain unauthorized access to your api. A quick and easy way is join a couple of GUIDs together to make a long random string (e.g. from https://www.guidgenerator.com/).
+  
+
+Package.json
+Path: /package.json
+The package.json file contains project configuration information including package dependencies which get installed when you run npm install.
+The scripts section contains scripts that are executed by running the command npm run <script name>, the start script can also be run with the shortcut command npm start.
+The start script starts the boilerplate api normally using node, and the start:dev script starts the api in development mode using nodemon which automatically restarts the server when a file is changed.
+For more info see https://docs.npmjs.com/files/package.json.
+  
+
+Server Startup File
+Path: /server.js
+The server.js file is the entry point into the boilerplate Node.js api, it configures application middleware, binds controllers to routes and starts the Express web server for the api.
+  
+
+Swagger API Documentation
+Path: /swagger.yaml
+The Swagger YAML file describes the entire Node.js Boilerplate API using the OpenAPI Specification format, it includes descriptions of all routes and HTTP methods on each route, request and response schemas, path parameters, and authentication methods.
+The YAML documentation is used by the swagger.js helper to automatically generate and serve interactive Swagger UI documentation on the /api-docs route of the boilerplate api. To preview the Swagger UI documentation without running the api simply copy and paste the below YAML into the swagger editor at https://editor.swagger.io/.
+File: swagger.yaml
+Run the Node + MySQL Boilerplate API Locally
+1. Install NodeJS and NPM from  https://nodejs.org/en/download/.
+2. Install MySQL Community Server from https://dev.mysql.com/downloads/mysql/ and ensure it is started. Installation instructions are available at https://dev.mysql.com/doc/refman/8.0/en/installing.html.
+3. Project source code
+4. Install all required npm packages by running npm install or npm i from the command line in the project root folder (where the package.json is located).
+5. Configure SMTP settings for email within the smtpOptions property in the /src/config.json file. For testing you can create a free account in one click at https://ethereal.email/ and copy the options below the title Nodemailer configuration.
+6. Start the api by running npm start (or npm run start:dev to start with nodemon) from the command line in the project root folder, you should see the message Server listening on port 4000, and you can view the Swagger API documentation at http://localhost:4000/api-docs.
+Before running in production
+Before running in production also make sure that you update the secret property in the config.json file, it is used to sign and verify JWT tokens for authentication, change it to a random string to ensure nobody else can generate a JWT with the same secret and gain unauthorized access to your api. A quick and easy way is join a couple of GUIDs together to make a long random string (e.g. from https://www.guidgenerator.com/).
+Test the Node.js Boilerplate API
+
+
+How to register a new account with Postman
+To register a new account with the Node.js boilerplate api follow these steps:
+1. Open a new request tab by clicking the plus (+) button at the end of the tabs.
+2. Change the http request method to "POST" with the dropdown selector on the left of the URL input field.
+3. In the URL field enter the address to the register route of your local API - http://localhost:4000/accounts/register
+4. Select the "Body" tab below the URL field, change the body type radio button to "raw", and change the format dropdown selector to "JSON".
+5. Enter a JSON object containing the required user properties in the "Body" textarea, e.g:
+6. Click the "Send" button, you should receive a "200 OK" response with a "registration successful" message in the response body.
+  
+
+And this is a screenshot of the verification email received with the token to verify the account:  
+How to verify an account with Postman
+To verify an account with the Node api follow these steps:
+1. Open a new request tab by clicking the plus (+) button at the end of the tabs.
+2. Change the http request method to "POST" with the dropdown selector on the left of the URL input field.
+3. In the URL field enter the address to the authenticate route of your local API - http://localhost:4000/accounts/verify-email
+4. Select the "Body" tab below the URL field, change the body type radio button to "raw", and change the format dropdown selector to "JSON".
+5. Enter a JSON object containing the token received in the verification email (in the previous step) in the "Body" textarea, e.g:
+6. Click the "Send" button, you should receive a "200 OK" response with a "verification successful" message in the response body.
+  
+
+How to access an account if you forgot the password
+To re-enable access to an account with a forgotten password you need to submit the email address of the account to the /account/forgot-password route, the route will then send a token to the email which will allow you to reset the password of the account in the next step.
+Follow these steps in Postman if you forgot the password for an account:
+1. Open a new request tab by clicking the plus (+) button at the end of the tabs.
+2. Change the http request method to "POST" with the dropdown selector on the left of the URL input field.
+3. In the URL field enter the address to the authenticate route of your local API - http://localhost:4000/accounts/forgot-password
+4. Select the "Body" tab below the URL field, change the body type radio button to "raw", and change the format dropdown selector to "JSON".
+5. Enter a JSON object containing the email of the account with the forgotten password in the "Body" textarea, e.g:
+  
+
+6. Click the "Send" button, you should receive a "200 OK" response with the message "Please check your email for password reset instructions" in the response body.
+  
+And this is a screenshot of the email received with the token to reset the password of the account:
+  
+
+  
+
+How to reset the password of an account with Postman
+To reset the password of an account with the api follow these steps:
+1. Open a new request tab by clicking the plus (+) button at the end of the tabs.
+2. Change the http request method to "POST" with the dropdown selector on the left of the URL input field.
+3. In the URL field enter the address to the authenticate route of your local API - http://localhost:4000/accounts/reset-password
+4. Select the "Body" tab below the URL field, change the body type radio button to "raw", and change the format dropdown selector to "JSON".
+5. Enter a JSON object containing the password reset token received in the email from the forgot password step, along with a new password and matching confirmPassword, into the "Body" textarea, e.g:
+  
+
+6. Click the "Send" button, you should receive a "200 OK" response with a "password reset successful" message in the response body.
+  
+
+How to authenticate with Postman
+To authenticate an account with the api and get a JWT token follow these steps:
+1. Open a new request tab by clicking the plus (+) button at the end of the tabs.
+2. Change the http request method to "POST" with the dropdown selector on the left of the URL input field.
+3. In the URL field enter the address to the authenticate route of your local API - http://localhost:4000/accounts/authenticate
+4. Select the "Body" tab below the URL field, change the body type radio button to "raw", and change the format dropdown selector to "JSON".
+5. Enter a JSON object containing the account email and password in the "Body" textarea:
+          
+6. Click the "Send" button, you should receive a "200 OK" response with the user details including a JWT token in the response body and a refresh token in the response cookies.
+7. Copy the JWT token value because we'll be using it in the next steps to make authenticated requests.
+  
+
+And this is the response cookies tab with the refresh token:
+  
+
+  
+
+How to get a list of all accounts with Postman
+This is a secure request that requires a JWT authentication token from the authenticate step. The api route is restricted to admin users.
+To get a list of all accounts from the Node boilerplate api follow these steps:
+1. Open a new request tab by clicking the plus (+) button at the end of the tabs.
+2. Change the http request method to "GET" with the dropdown selector on the left of the URL input field.
+3. In the URL field enter the address to the users route of your local API - http://localhost:4000/accounts
+4. Select the "Authorization" tab below the URL field, change the type to "Bearer Token" in the type dropdown selector, and paste the JWT token from the previous authenticate step into the "Token" field.
+5. Click the "Send" button, you should receive a "200 OK" response containing a JSON array with all of the account records in the system.
+Here's a screenshot of Postman after making an authenticated request to get all accounts:
+  
+
+How to update an account with Postman
+This is a secure request that requires a JWT authentication token from the authenticate step. Admin users can update any account including its role, while regular users are restricted to their own account and cannot update roles. Omitted or empty properties are not updated.
+To update an account with the api follow these steps:
+1. Open a new request tab by clicking the plus (+) button at the end of the tabs.
+2. Change the http request method to "PUT" with the dropdown selector on the left of the URL input field.
+3. In the URL field enter the address to the /accounts/{id} route with the id of the account you want to update, e.g - http://localhost:4000/accounts/1
+4. Select the "Authorization" tab below the URL field, change the type to "Bearer Token" in the type dropdown selector, and paste the JWT token from the previous authenticate step into the "Token" field.
+5. Select the "Body" tab below the URL field, change the body type radio button to "raw", and change the format dropdown selector to "JSON".
+6. Enter a JSON object in the "Body" textarea containing the properties you want to update, for example to update the first and last names:
+  
+
+7. Click the "Send" button, you should receive a "200 OK" response with the updated account details in the response body.
+  
+
+How to use a refresh token to get a new JWT token
+This step can only be done after the authenticate step because a valid refresh token cookie is required.
+To use a refresh token cookie to get a new JWT token and a new refresh token follow these steps:
+1. Open a new request tab by clicking the plus (+) button at the end of the tabs.
+2. Change the http request method to "POST" with the dropdown selector on the left of the URL input field.
+3. In the URL field enter the address to the refresh token route of your local API - http://localhost:4000/accounts/refresh-token
+4. Click the "Send" button, you should receive a "200 OK" response with the account details including a new JWT token in the response body and a new refresh token in the response cookies.
+5. Copy the JWT token value because we'll be using it in the next steps to make authenticated requests.
+Here's a screenshot of Postman after the request is sent and the token has been refreshed:
+  
+And this is the response cookies tab with the new refresh token:
+
+
+
+
+
+
+
+
+
+
+
+
+
+Angular 19 Boilerplate - Email Sign Up with Verification, Authentication & Forgot Password
+Tutorial built with Angular 17.3.2
+
+
+In this tutorial we'll cover how to implement a boilerplate sign up and authentication system in Angular that includes:
+
+
+* Email sign up and verification
+* JWT authentication with refresh tokens
+* Role based authorization with support for two roles (User & Admin)
+* Forgot password and reset password functionality
+* View and update my profile section
+* Admin section with sub section for managing all accounts (restricted to the Admin role)
+
+
+Angular Boilerplate App Overview
+The Angular boilerplate app runs with a fake backend by default to enable it to run completely in the browser without a real backend api (backend-less), to switch to a real backend api you just have to remove a couple of lines of code from the app module file (/src/app/app.module.ts). You can build your own api or hook it up with one of the boilerplate apis available (Node.js + MySQL) with the instructions below.
+
+
+There are no accounts registered in the application by default, in order to login you must first register and verify an account. The fake backend displays "email" messages on screen because it can't send real emails, so after registration a "verification email" is displayed with a link to verify the account just registered, click the link to verify the account and login to the Angular boilerplate app.
+
+
+The first account registered is assigned to the Admin role and subsequent accounts are assigned to the regular User role. Admins can access the admin section and manage all accounts, regular user accounts can only update their own profile.
+
+
+JWT authentication with refresh tokens
+Authentication is implemented with JWT access tokens and refresh tokens. On successful authentication the api (or fake backend) returns a short lived JWT access token that expires after 15 minutes, and a refresh token that expires after 7 days in a cookie. The JWT is used for accessing secure routes on the api and the refresh token is used for generating new JWT access tokens when (or just before) they expire, the Angular app starts a timer to refresh the JWT token 1 minute before it expires to keep the account logged in.
+
+
+Angular 19 Boilerplate Project Structure
+The Angular CLI was used to generate the base project structure with the ng new <project name> command, the CLI is also used to build and serve the boilerplate application. For more info about the Angular CLI see https://angular.io/cli.
+The app and code structure of the tutorial mostly follow the best practice recommendations in the official Angular Style Guide, with a few of my own tweaks here and there.
+Each feature has it's own folder (account, admin, home & profile), other shared/common code such as components, services, models, helpers etc are placed in folders prefixed with an underscore _ to easily differentiate them from features and group them together at the top of the folder structure.
+The index.ts files in some folders are barrel files that group the exported modules from that folder together so they can be imported using only the folder path instead of the full module path, and to enable importing multiple modules in a single import (e.g. import { AccountService, AlertService } from '@app/_services').
+The account, admin and profile features are organized into self contained feature modules that manage their own layout, routes and components, and are hooked into the main app inside the app routing module with lazy loading.
+Path aliases @app and @environments have been configured in tsconfig.base.json that map to the /src/app and /src/environments directories. This allows imports to be relative to the app and environments folders by prefixing import paths with aliases instead of having to use long relative paths (e.g. import MyComponent from '../../../MyComponent').
+Here are the main project files that contain the boilerplate application logic. I left out some files that were generated by Angular CLI ng new command that I didn't change.
+  
+  
+  
+
+Alert Component Template
+Path: /src/app/_components/alert.component.html
+The alert component template contains the html for displaying alert messages at the top of the page, it renders a notification for each alert in the alerts array of the alert component below.
+  
+
+Alert Component
+Path: /src/app/_components/alert.component.ts
+The alert component controls the adding & removing of alerts in the UI, it maintains an array of alerts that are rendered by the component template.
+The component subscribes to receive new alerts from the alert service in the ngOnInit method by calling the alertService.onAlert() method; new alerts are added to the alerts array for display. Alerts are cleared when an alert with an empty message is received from the alert service. The ngOnInit method also calls router.events.subscribe() to subscribe to route change events so it can automatically clear alerts on route changes.
+The ngOnDestroy() method unsubscribes from the alert service and router events when the component is destroyed to prevent memory leaks from orphaned subscriptions.
+The removeAlert() method removes the specified alert object from the array, which allows individual alerts to be closed in the UI.
+The cssClasses() method returns a corresponding bootstrap alert class for each of the alert types, if you're using something other than bootstrap you can change the CSS classes returned to suit your application.
+  
+  
+  
+  
+  
+
+App Initializer
+Path: /src/app/_helpers/app.initializer.ts
+The app initializer runs before the boilerplate app starts up and attempts to automatically authenticate the user in the background by calling accountService.refreshToken() to get a new JWT token from the api using the refresh token stored in the browser cookie (if it exists).
+If the user has logged in previously (without logging out) and the browser still contains a valid refresh token cookie then they will be automatically logged in when the app loads.
+The call to the .subscribe() method triggers the request to the api, and the .add() method is used for executing additional logic after the request completes (success or failure), so it works like a promise finally() method.
+The app initializer is added to angular app in the providers section of the app module using the APP_INITIALIZER injection token. For more info see https://angular.io/api/core/APP_INITIALIZER.
+  
+
+Auth Guard
+Path: /src/app/_helpers/auth.guard.ts
+The auth guard is an angular route guard that's used to prevent unauthorized users from                                                                                                                                                                                                                             accessing restricted routes, it does this by implementing the CanActivate interface which allows the guard to decide if a route can be activated with the canActivate() method. If the method returns true the route is activated (allowed to proceed), otherwise if the method returns false the route is blocked.
+The auth guard uses the account service to check if the user is logged in, if the user isn't logged in they're redirected to the /login page with the returnUrl in the query parameters, if the user is logged in but not in an authorized role they're redirected to the home page
+Angular route guards are attached to routes in the router config, this auth guard is used in app-routing.module.ts to protect the home, profile and admin routes.
+  
+
+Error Interceptor
+Path: /src/app/_helpers/error.interceptor.ts
+
+
+The Error Interceptor intercepts http responses from the api to check if there were any errors. If there is a 401 Unauthorized or 403 Forbidden response the account is automatically logged out of the boilerplate application, all other errors are re-thrown up to the calling service so an alert with the error can be displayed on the screen.
+It's implemented using the Angular HttpInterceptor interface included in the HttpClientModule, by implementing the HttpInterceptor interface you can create a custom interceptor to catch all error responses from the api in a single location.
+Http interceptors are added to the request pipeline in the providers section of the app.module.ts file.
+  
+
+
+
+Fake Backend Provider
+Path: /src/app/_helpers/fake-backend.ts
+In order to run and test the Angular boilerplate app without a real backend API, the example uses a fake backend that intercepts the HTTP requests from the Angular app and sends back "fake" responses. This is done by a class that implements the Angular HttpInterceptor interface, for more information on Angular HTTP Interceptors see https://angular.io/api/common/http/HttpInterceptor or this article.
+The fake backend is organized into a top level handleRoute() function that checks the request url and method to determine how the request should be handled. For intercepted routes one of the below // route functions is called, for all other routes the request is passed through to the real backend by calling next.handle(request). Below the route functions there are // helper functions for returning different response types and performing small tasks.
+The fake backend can't send emails so instead displays "email" messages on the screen by calling alertService.info() with the contents of the email e.g. "verify email" and "reset password" emails.
+A fake backend is used for doing backendless development in Angular which allows you to run and test your code without a real backend api, it's perfect for code hosted in StackBlitz which doesn't have a backend, or when you're developing a front end before the backend is available.
+I created the below fake backend as part of an Angular 10 User Registration and Login Example & Tutorial, it's built by extending the Angular HttpInterceptor interface and includes mock endpoints for authentication, registration and user management, and uses browser local storage to store data to mimic a real api with a database.
+Passing through unmocked requests to a real backend API
+Sometimes there's a need to pass through specific requests to the server instead of being caught by the fake backend, for example when the real backend is partially completed and has some endpoints available.
+With Angular 10 HTTP interceptors this is done by calling return next.handle(request);, you can see the code for passing through unmocked requests in the default case of the switch statement below.
+Angular 19 Fake Backend Provider
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+
+JWT Interceptor
+Path: /src/app/_helpers/jwt.interceptor.ts
+The JWT Interceptor intercepts http requests from the application to add a JWT auth token to the Authorization header if the user is logged in and the request is to the application api url (environment.apiUrl).
+It's implemented using the HttpInterceptor interface included in the HttpClientModule, by implementing the HttpInterceptor interface you can create a custom interceptor to modify http requests before they get sent to the server.
+Http interceptors are added to the request pipeline in the providers section of the app.module.ts file.
+  
+
+Must Match Validator
+Path: /src/app/_helpers/must-match.validator.ts
+The reactive forms custom MustMatch validator is used by some components in the boilerplate app to validate that password and confirmPassword fields match, e.g. in the register component).
+  
+
+  
+
+Account Model
+Path: /src/app/_models/account.ts
+The account model is a small class that defines the properties of an account.
+  
+
+Alert Model and Alert Type Enum
+Path: /src/app/_models/alert.ts
+The Alert model defines the properties of each alert object, and the AlertType enum defines the types of alerts allowed in the application.
+  
+
+Role Enum
+Path: /src/app/_models/role.ts
+The role enum defines the roles that are supported by the application.
+  
+
+  
+
+Account Service
+Path: /src/app/_services/account.service.ts
+The account service handles communication between the Angular boilerplate app and the backend api for everything related to accounts. It contains methods for the sign up, verification, authentication, refresh token and forgotten password flows, as well as standard CRUD methods for retrieving and modifying account data.
+On successful login the api returns the account details and a JWT token which are published to all subscribers with the call to this.accountSubject.next(account), the api also returns a refresh token cookie which is stored by the browser. The method then starts a countdown timer by calling this.startRefreshTokenTimer() to auto refresh the JWT token in the background (silent refresh) one minute before it expires in order to keep the account logged in.
+The logout() method makes a POST request to the API to revoke the refresh token that is stored in the refreshToken cookie in the browser, cancels the silent refresh running in the background by calling this.stopRefreshTokenTimer(), then logs the user out by publishing a null value to all subscriber components (this.accountSubject.next(null)), and finally redirects to the login page.
+The account property exposes an RxJS observable (Observable<Account>) so any component can subscribe to be notified when a user logs in, logs out, has their token refreshed or updates their profile. The notification is triggered by the call to this.accountSubject.next() from each of the corresponding methods in the service.
+  
+  
+  
+  
+
+Alert Service
+Path: /src/app/_services/alert.service.ts
+The alert service acts as the bridge between any component in an Angular boilerplate application and the alert component that actually displays the alert messages. It contains methods for sending, clearing and subscribing to alert messages.
+You can trigger alert notifications from any component or service by calling one of the convenience methods for displaying the different types of alerts: success(), error(), info() and warn().
+Alert convenience method parameters
+* The first parameter is the alert message string, which can be plain text or HTML
+* The second parameter is an optional options object that supports an autoClose boolean property and keepAfterRouteChange boolean property:
+   * autoClose - if true tells the alert component to automatically close the alert after three seconds. Default is true.
+   * keepAfterRouteChange - if true prevents the alert from being closed after one route change, this is handy for displaying messages after a redirect such as when a new account is created or updated. Default is false.
+The alert service uses the RxJS Observable and Subject classes to enable communication with other components, 
+  
+  
+  
+
+Account Routing Module
+Path: /src/app/account/account-routing.module.ts
+The account routing module defines the routes for the account feature module. It includes routes for login, registration and related functionality, and a parent route for the account layout component which contains the common layout code for the account section.
+  
+
+Account Module
+Path: /src/app/account/account.module.ts
+The account module defines the feature module for the account section along with metadata about the module. The imports specify which other angular modules are required by this module, and the declarations specify which components belong to this module. For more info about angular 10 modules see https://angular.io/docs/ts/latest/guide/ngmodule.html.
+The account module is hooked into the main app inside the app routing module with lazy loading.
+  
+
+Forgot Password Component Template
+Path: /src/app/account/forgot-password.component.html
+The forgot password component template contains a simple form with a single field for entering the email of the account that you have forgotten password for. The form element uses the [formGroup] directive to bind to the form FormGroup in the forgot password component below, and it binds the form submit event to the onSubmit() handler in the forgot password component using the angular event binding (ngSubmit)="onSubmit()".
+  
+
+Forgot Password Component
+Path: /src/app/account/forgot-password.component.ts
+On valid submit the forgot password component calls this.accountService.forgotPassword() and displays either a success or error message. If the email matches a registered account the fake backend displays a password reset "email" with instructions in the UI below the success message (A real backend api would send an actual email for this step), the instructions include a link to reset the password of the account.
+  
+  
+
+Account Layout Component Template
+Path: /src/app/account/layout.component.html
+The account layout component template is the root template of the account feature / section of the boilerplate app, it contains the outer HTML for account registration, authentication and verification pages, and a <router-outlet> for rendering the currently routed component.
+  
+
+Account Layout Component
+Path: /src/app/account/layout.component.ts
+The account layout component is the root component of the account feature / section of the boilerplate app, it is bound to the account layout template with the templateUrl property of the angular @Component decorator, and automatically redirects the user to the home page if they are already logged in.
+  
+
+Login Component Template
+Path: /src/app/account/login.component.html
+The login component template contains a login form with email and password fields. It displays validation messages for invalid fields when the form is submitted. The form submit event is bound to the onSubmit() method of the login component.
+The component uses reactive form validation to validate the input fields,
+  
+
+Login Component
+Path: /src/app/account/login.component.ts
+The login component uses the account service to login to the application on form submit. It creates the form fields and validators using an Angular FormBuilder to create an instance of a FormGroup that is stored in the form property. The form is then bound to the <form> element in the login component template above using the [formGroup] directive.
+On successful login the user is redirected to the page they were trying to access before logging in or to the home page ('/') by default. The returnUrl query parameter is added to the url when redirected by the auth guard. On failed login the error returned from the backend is displayed in the UI.
+The component contains a convenience getter property f to make it a bit easier to access form controls, for example you can access the password field in the template using f.password instead of form.controls.password.
+  
+  
+
+Register Component Template
+Path: /src/app/account/register.component.html
+The register component template contains an account registration form with fields for title, first name, last name, email, password, confirm password and an accept Ts & Cs checkbox. All fields are required including the checkbox, the email field must be a valid email address, the password field must have a min length of 6 and must match the confirm password field.
+The template displays validation messages for invalid fields when the form is submitted. The form element uses the [formGroup] directive to bind to the form FormGroup in the register component below, and it binds the form submit event to the onSubmit() handler in the register component using the angular event binding (ngSubmit)="onSubmit()".
+The component uses reactive form validation to validate the input fields,
+  
+  
+
+Register Component
+Path: /src/app/account/register.component.ts
+The register component creates a new account with the account service when the register form is valid and submitted.
+It creates the form fields and validators using an Angular FormBuilder to create an instance of a FormGroup that is stored in the form property. The form is then bound to the <form> element in the register component template using the [formGroup] directive.
+The component contains a convenience getter property f to make it a bit easier to access form controls, for example you can access the password field in the template using f.password instead of form.controls.password.
+On successful registration a success message is displayed and the user is redirected to the login page, then the fake backend displays a verification "email" with instructions in the UI below the success message (A real backend api would send an actual email for this step), the instructions include a link to verify the account.
+  
+  
+
+Reset Password Component Template
+Path: /src/app/account/reset-password.component.html
+The reset password component template renders one of the following three views based on the status of the token being validated by the reset password component:
+* Token Validating: a message stating that the token is validating.
+* Token Invalid: a message that the validation failed and a link to the forgot password page to get a new token.
+* Token Valid: a form to reset the password that contains fields for password and confirm password.
+  
+
+Reset Password Component
+Path: /src/app/account/reset-password.component.ts
+The reset password component displays a form for resetting an account password when it receives a valid password reset token in the url query string parameters. The token is validated when the component initialized by calling this.accountService.validateResetToken(token) from the ngOnInit() Angular lifecycle method.
+The tokenStatus controls what is rendered by the reset password component template, the initial status is Validating before changing to either Valid or Invalid. The TokenStatus enum is used to set the status so we don't have to use string values.
+On form submit the password is reset by calling this.accountService.resetPassword(...) which sends the token and new password to the backend. The backend should validate the token again before updating the password, see the resetPassword() function in the fake backend for an example.
+On successful password reset the user is redirected to the login page with a success message and can login to the boilerplate app with the new password.
+  
+  
+  
+
+Verify Email Component Template
+Path: /src/app/account/verify-email.component.html
+The verify email component template renders one of the following two views based on the status of the email token being verified by the verify email component:
+* Verifying: a message stating that the email is verifying.
+* Failed: a message that email verification failed and a link to the forgot password page as an alternative way to verify the email.
+  
+
+Verify Email Component
+Path: /src/app/account/verify-email.component.ts
+The verify email component is used to verify new accounts before they can login to the boilerplate app. When a new account is registered an email is sent to the user containing a link back to this component with a verification token in the querystring parameters. The token from the email link is verified when the component initialized by calling this.accountService.verifyEmail(token) from the ngOnInit() Angular lifecycle method.
+On successful verification the user is redirected to the login page with a success message and can login to the account, if token verification fails an error message is displayed and a link to the forgot password page which can also be used to verify an account.
+NOTE: When using the app with the fake backend the verification "email" is displayed on the screen when a new account is registered.
+  
+
+Admin » Accounts Routing Module
+Path: /src/app/admin/accounts/accounts-routing.module.ts
+The accounts routing module defines the routes for the accounts feature module. It includes routes for listing, adding and editing accounts. The add and edit routes are separate but both load the same component (AddEditComponent) which modifies its behavior based on the route.
+  
+
+Admin » Accounts Module
+Path: /src/app/admin/accounts/accounts.module.ts
+The accounts module defines the feature module for the accounts section along with metadata about the module. The imports specify which other angular modules are required by this module, and the declarations specify which components belong to this module. For more info about angular 10 modules see https://angular.io/docs/ts/latest/guide/ngmodule.html.
+The accounts module is hooked into the Angular boilerplate app as a child of the admin section via the admin routing module with lazy loading.
+  
+
+Admin » Accounts Add/Edit Component Template
+Path: /src/app/admin/accounts/add-edit.component.html
+The accounts add/edit component template contains a dynamic form that supports both creating and updating accounts. The isAddMode property is used to change what is displayed based on which mode the component is in, for example the form title and password optional message.
+  
+  
+  
+
+Admin » Accounts Add/Edit Component
+Path: /src/app/admin/accounts/add-edit.component.ts
+The accounts add/edit component is used for both creating and updating accounts, the component is in "add mode" when there is no account id route parameter, otherwise it is in "edit mode". The property isAddMode is used to change the component behavior based on which mode it is in, for example in "add mode" the password field is required, and in "edit mode" (!this.isAddMode) the account service is called when the component initializes to get the account details (this.accountService.getById(this.id)) to pre-populate the field values.
+On submit a account is either created or updated by calling the account service, and on success the user is redirected back to the accounts list page with a success message.
+  
+  
+  
+  
+
+Admin » Accounts List Component Template
+Path: /src/app/admin/accounts/list.component.html
+The accounts list component template displays a list of all accounts and contains buttons for creating, editing and deleting accounts.
+  
+
+ Admin » Accounts List Component
+Path: /src/app/admin/accounts/list.component.ts
+The accounts list component gets all accounts from the account service in the ngOnInit() method and makes them available to the accounts list template via the accounts property.
+The deleteAccount() method sets the property account.isDeleting = true so the template displays a spinner on the delete button, then calls this.accountService.delete(id) to delete the account and removes the deleted account from component accounts array so it is removed from the UI.
+  
+
+Admin Routing Module
+Path: /src/app/admin/admin-routing.module.ts
+The admin routing module defines the routes for the admin feature module. It includes a route for the admin subnav component that is displayed below the main nav on all admin pages, plus routes for the overview page and accounts section, and a parent route for the admin layout component which contains the common layout code for the admin section. The accounts module is lazy loaded as a child module of the admin module.
+  
+
+Admin Module
+Path: /src/app/admin/admin.module.ts
+The admin module defines the feature module for the admin section along with metadata about the module. The imports specify which other angular modules are required by this module, and the declarations specify which components belong to this module. For more info about angular 10 modules see https://angular.io/docs/ts/latest/guide/ngmodule.html.
+The admin module is hooked into the main app inside the app routing module with lazy loading.
+  
+
+Admin Layout Component Template
+Path: /src/app/admin/layout.component.html
+The admin layout component template is the root template of the admin feature / section of the app, it contains the outer HTML for all /admin pages and a <router-outlet> for rendering the currently routed component.
+  
+
+Admin Layout Component
+Path: /src/app/admin/layout.component.ts
+The admin layout component is the root component of the admin feature / section of the boilerplate app, it is bound to the admin layout template with the templateUrl property of the angular @Component decorator.
+  
+
+Admin Overview Component Template
+Path: /src/app/admin/overview.component.html
+The admin overview component template displays some basic HTML and a link to the account admin section.
+  
+
+Admin Overview Component
+Path: /src/app/admin/overview.component.ts
+The admin overview component is the default component of the admin section of the boilerplate app, it is bound to the admin overview template with the templateUrl property of the angular @Component decorator.
+  
+
+Admin Sub Nav Component Template
+Path: /src/app/admin/subnav.component.html
+The admin sub nav component template contains the navigation for the admin section of the boilerplate app, it is displayed directly below the main nav on all admin pages of the application.
+The sub nav is rendered by the "subnav" router outlet in the app component template and is bound to the router outlet in the admin routing module.
+  
+
+Admin Sub Nav Component
+Path: /src/app/admin/subnav.component.ts
+The admin sub nav component contains the class for the admin sub nav template, it is bound to the template with the templateUrl property of the angular @Component decorator.
+  
+
+Home Component Template
+Path: /src/app/home/home.component.html
+The home component template contains html and angular 10 template syntax for displaying a simple welcome message with the first name of the logged in account.
+  
+
+Home Component
+Path: /src/app/home/home.component.ts
+The home component defines an angular 10 component that gets the current logged in account from the account service and makes it available to the home template via the account property.
+  
+
+  
+
+Profile Details Component Template
+Path: /src/app/profile/details.component.html
+The profile details component template displays the name and email of the authenticated account with a link to the update profile page.
+  
+
+Profile Details Component
+Path: /src/app/profile/details.component.ts
+The profile details component defines an angular 10 component that gets the current logged in account from the account service and makes it available to the profile details template via the account property.
+  
+
+Profile Layout Component Template
+Path: /src/app/profile/layout.component.html
+The profile layout component template is the root template of the profile feature / section of the boilerplate app, it contains the outer HTML for all /profile pages and a <router-outlet> for rendering the currently routed component.
+  
+
+Profile Layout Component
+Path: /src/app/profile/layout.component.ts
+The profile layout component is the root component of the profile feature / section of the boilerplate app, it is bound to the profile layout template with the templateUrl property of the angular @Component decorator.
+  
+
+Profile Routing Module
+Path: /src/app/profile/profile-routing.module.ts
+The profile routing module defines the routes for the profile feature module. It includes routes for profile details and update profile, and a parent route for the profile layout which contains the common layout code for the profile section.
+  
+
+Profile Module
+Path: /src/app/profile/profile.module.ts
+The profile module defines the feature module for the profile section of the angular boilerplate app. The imports specify which other angular modules are required by this module and the declarations specify which components belong to this module. For more info about angular 10 modules see https://angular.io/docs/ts/latest/guide/ngmodule.html.
+The profile module is hooked into the main app inside the app routing module with lazy loading.
+  
+
+Profile Update Component Template
+Path: /src/app/profile/update.component.html
+The profile update component template contains a form for updating the details of the currently authenticated account, changing password, or deleting the account.
+  
+  
+
+Profile Update Component
+Path: /src/app/profile/update.component.ts
+The profile update component enables the current user to update their profile, change their password, or delete their account. It pre-populates the form fields with the current account from the account service (this.accountService.accountValue), and is bound to the profile update template with the templateUrl property of the angular @Component decorator.
+On successful update the user is redirected back to the profile details page with a success message. On successful delete the user is logged out of the boilerplate app with a message that the account was successfully deleted.
+  
+  
+
+App Routing Module
+Path: /src/app/app-routing.module.ts
+The app routing module defines the top level routes for the boilerplate angular application and generates a root routing module by passing the array of routes to the RouterModule.forRoot() method. The module is imported into the main app module below.
+The home route maps the root path (/) of the app to the home component, the /account route maps to the account module, the /profile route maps to the profile module and the /admin route maps to the admin module, and all three feature module routes (account, profile, admin) are lazy loaded.
+The home, profile and admin routes are secured by passing the auth guard to the canActivate property of each route, and the admin route is restricted to accounts with the Admin role.
+For more information on angular routing see https://angular.io/guide/router.
+  
+
+App Component Template
+Path: /src/app/app.component.html
+The app component template is the root component template of the boilerplate application, it contains the main nav bar which is only displayed for authenticated accounts, a named router-outlet for rendering a subnav, a global alert component, and a primary router-outlet displaying the contents of each view based on the current route / path.
+  
+
+App Component
+Path: /src/app/app.component.ts
+The app component is the root component of the boilerplate angular app, it defines the root tag of the app as <app></app> with the selector property of the @Component() decorator.
+It subscribes to the account observable of the account service so it can reactively show/hide the main nav bar in the app component template when the user logs in/out of the application. I didn't worry about unsubscribing from the observable here because it's the root component of the application and will only be destroyed when the angular app is closed.
+The logout() method is called from the logout link in the main nav bar to log the account out and redirect to the login page.
+  
+
+App Module
+Path: /src/app/app.module.ts
+The app module defines the root module of the angular boilerplate application along with metadata about the module. For more info about angular 10 modules see https://angular.io/docs/ts/latest/guide/ngmodule.html.
+This is where the fake backend provider is added to the application, to switch to a real backend simply remove the fakeBackendProvider located below the comment // provider used to create fake backend.
+  
+
+Production Environment Config
+Path: /src/environments/environment.prod.ts
+The production environment config contains variables required to run the application in production. This enables you to build the application with a different configuration for each different environment (e.g. production & development) without updating the app code.
+When you build the application for production with the command ng build --prod, the output environment.ts is replaced with environment.prod.ts.
+  
+
+Development Environment Config
+Path: /src/environments/environment.ts
+The development environment config contains variables required to run the boilerplate app in development.
+Environment config is accessed by importing the environment object into any Angular service or component with the line import { environment } from '@environments/environment' and accessing properties on the environment object, see the account service for an example.
+  
+
+Main Index Html File
+Path: /src/index.html
+The main index.html file is the initial page loaded by the browser that kicks everything off. The Angular CLI (with Webpack under the hood) bundles all of the compiled javascript files together and injects them into the body of the index.html page so the scripts can be loaded and executed by the browser.
+  
+
+Main (Bootstrap) File
+Path: /src/main.ts
+The main file is the entry point used by angular to launch and bootstrap the application.
+  
+
+Polyfills
+Path: /src/polyfills.ts
+Some features used by Angular 10 are not yet supported natively by all major browsers, polyfills are used to add support for features where necessary so your Angular 10 boilerplate application works across all major browsers.
+This file is generated by the Angular CLI when creating a new project with the ng new command, I've excluded the comments in the file for brevity.
+  
+
+Global LESS/CSS Styles
+Path: /src/styles.less
+The global styles file contains LESS/CSS styles that are applied globally throughout the angular 10 boilerplate application.
+  
+
+Package.json
+Path: /package.json
+The package.json file contains project configuration information including package dependencies that get installed when you run npm install and scripts that are executed when you run npm start or npm run build etc. Full documentation is available at https://docs.npmjs.com/files/package.json.
+  
+  
+
+TypeScript tsconfig.base.json
+Path: /tsconfig.base.json
+The tsconfig.base.json file contains the base TypeScript compiler configuration for all projects in the Angular workspace, it configures how the TypeScript code will be compiled / transpiled into JavaScript that is understood by the browser. For more info see https://angular.io/config/tsconfig.
+Most of the file is unchanged from when it was generated by the Angular CLI, only the paths property has been added to map the @app and @environments aliases to the /src/app and /src/environments directories. This allows imports to be relative to the app and environments folders by prefixing import paths with aliases instead of having to use long relative paths (e.g. import MyComponent from '@app/MyComponent' instead of import MyComponent from '../../../MyComponent').
+  
+
+Other files
+
+
+  
+
+
+
+
+
+
+
+Troubleshooting:
+
+
+1. During npm install you may encounter an error like this:
+  
+
+lega
+
+
+2. As the npm suggested to Fix the upstream dependency conflict, or retry this command with --force or --legacy-peer-deps  to accept an incorrect (and potentially broken) dependency resolution.
+  
+
+3. To run this without installation of angular cli or you may encounter when typing npm start type npx ng serve instead

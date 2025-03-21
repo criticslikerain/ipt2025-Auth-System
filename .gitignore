@@ -1,42 +1,75 @@
-# See https://docs.github.com/get-started/getting-started-with-git/ignoring-files for more about ignoring files.
-
 # Compiled output
 /dist
 /tmp
 /out-tsc
 /bazel-out
+/.angular/cache
+*.js.map
 
-# Node
+# Dependencies
 /node_modules
-npm-debug.log
-yarn-error.log
+package-lock.json
+yarn.lock
 
 # IDEs and editors
-.idea/
+/.idea
 .project
 .classpath
 .c9/
 *.launch
 .settings/
 *.sublime-workspace
-
-# Visual Studio Code
 .vscode/*
 !.vscode/settings.json
 !.vscode/tasks.json
 !.vscode/launch.json
 !.vscode/extensions.json
-.history/*
 
-# Miscellaneous
-/.angular/cache
-.sass-cache/
+# Environment files
+/src/environments/*.ts
+!/src/environments/environment.ts
+.env
+.env.*
+!.env.example
+
+# Misc
+/.sass-cache
 /connect.lock
 /coverage
 /libpeerconnection.log
+npm-debug.log
+yarn-error.log
 testem.log
 /typings
 
-# System files
+# System Files
 .DS_Store
 Thumbs.db
+
+# Debug logs
+debug.log
+*.log
+
+# Build files
+*.tsbuildinfo
+
+# Test coverage
+/coverage
+/.nyc_output
+
+# Database
+*.sql
+*.sqlite
+*.sqlite3
+
+# Secrets and keys
+*.pem
+*.key
+*.cert
+config.json
+
+# Optional: Uncomment if using these tools
+# /e2e/*.js
+# /e2e/*.map
+# /.angular-cli.cache
+# /.nx/cache
