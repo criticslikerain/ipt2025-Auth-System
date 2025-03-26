@@ -1,0 +1,110 @@
+/* Container Design */
+.account-list-container {
+    background-color: #fff;
+    padding: 2rem;
+    border-radius: 12px;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.05);
+    margin: 20px;
+  }
+  
+  /* Header Section */
+  header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+  }
+  
+  h1 {
+    color: #333;
+    font-size: 2rem;
+  }
+  
+  p {
+    color: #777;
+    font-size: 1rem;
+  }
+  
+  .btn-create {
+    background-color: #28a745;
+    color: white;
+    text-decoration: none;
+    padding: 10px 20px;
+    border-radius: 8px;
+    transition: background-color 0.3s;
+  }
+  
+  .btn-create:hover {
+    background-color: #218838;
+  }
+  
+  /* Table Design */
+  .account-table {
+    width: 100%;
+    border-collapse: collapse;
+    overflow: hidden;
+    border-radius: 8px;
+  }
+  
+  .account-table th, .account-table td {
+    padding: 16px;
+    text-align: center;
+  }
+  
+  .account-table thead {
+    background-color: #007bff;
+    color: white;
+  }
+  
+  .account-table tbody tr {
+    border-bottom: 1px solid #ddd;
+    transition: background-color 0.3s;
+  }
+  
+  .account-table tbody tr:hover {
+    background-color: #f5f7fa;
+  }
+  
+  /* Action Buttons */
+  .actions {
+    display: flex;
+    gap: 10px;
+  }
+  
+  .btn-edit, .btn-delete {
+    color: white;
+    padding: 8px 14px;
+    border-radius: 6px;
+    border: none;
+    cursor: pointer;
+    transition: background-color 0.3s;
+  }
+  
+  .btn-edit {
+    background-color: #007bff;
+  }
+  
+  .btn-edit:hover {
+    background-color: #0056b3;
+  }
+  
+  .btn-delete {
+    background-color: #dc3545;
+  }
+  
+  .btn-delete:hover {
+    background-color: #c82333;
+  }
+  
+  .btn-delete:disabled {
+    background-color: #ccc;
+    cursor: not-allowed;
+  }
+  
+  /* Loading State */
+  .loading {
+    text-align: center;
+    color: #007bff;
+    font-weight: bold;
+  }
+  
