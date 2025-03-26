@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Account Management</title>
+  <link rel="stylesheet" href="list.component.css" />
+</head>
+<div class="account-list-container">
+    <header>
+      <h1>Account Management</h1>
+      <p>Manage all accounts from a secure (admin only) API endpoint.</p>
+      <a routerLink="add" class="btn-create">+ Create Account</a>
+    </header>
+  
+    <table class="account-table">
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Email</th>
+          <th>Role</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let account of accounts" class="account-row">
+          <td>{{account.title}} {{account.firstName}} {{account.lastName}}</td>
+          <td>{{account.email}}</td>
+          <td>{{account.role}}</td>
+          <td class="actions">
+            <a routerLink="edit/{{account.id}}" class="btn-edit">Edit</a>
+            <button (click)="deleteAccount(account.id)" class="btn-delete" [disabled]="account.isDeleting">
+              <span *ngIf="account.isDeleting" class="spinner-border spinner-border-sm"></span>
+              <span *ngIf="!account.isDeleting">Delete</span>
+            </button>
+          </td>
+        </tr>
+        <tr *ngIf="!accounts">
+          <td colspan="4" class="loading">
+            <span class="spinner-border spinner-border-lg"></span> Loading accounts...
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+  

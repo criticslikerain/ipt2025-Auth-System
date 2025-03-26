@@ -1,1 +1,28 @@
-// HELLO WORLD
+<div class="container">
+  <div class="card">
+    <div class="brand-box">
+      <div class="logo"></div>
+      <h2 class="website-name">Benedicto College</h2>
+    </div>
+    <hr class="separator" />
+    <h3 class="card-header">Verify Email</h3>
+    <div class="card-body">
+      <div *ngIf="emailStatus === EmailStatus.Verifying" class="verifying-message">
+        Verifying your email, please wait...
+      </div>
+
+      <div *ngIf="emailStatus === EmailStatus.Failed" class="error-message">
+        Verification failed. You can also verify your account using the
+        <a routerLink="/forgot-password">forgot password</a> page.
+      </div>
+
+      <div *ngIf="emailStatus === EmailStatus.Success" class="success-message">
+        ✅ Your email has been successfully verified!
+      </div>
+
+      <div class="link-container" *ngIf="emailStatus !== EmailStatus.Verifying">
+        <a routerLink="/login" class="back-link">← Back to Login</a>
+      </div>
+    </div>
+  </div>
+</div>
