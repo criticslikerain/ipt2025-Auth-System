@@ -1,0 +1,169 @@
+html, body {
+    margin: 0;
+    padding: 0;
+    font-family: 'Segoe UI', sans-serif;
+    height: 100vh;
+    width: 100vw;
+    background-image: url('assets/background.webp');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+  }
+  
+  
+  body {
+    overflow: hidden;
+  }
+  
+  .container {
+    width: 100%;
+    max-width: 400px;
+    padding: 40px 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  .card {
+    background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    width: 100%;
+    border-radius: 12px;
+    padding: 25px 30px;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+  }
+  
+  /* 🔷 Branding section */
+  .brand-box {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 20px;
+    gap: 15px;
+    border-bottom: 2px solid rgba(255, 255, 255, 0.1);
+    padding-bottom: 15px;
+  
+    .logo {
+      width: 60px;
+      height: 60px;
+      background-image: url('assets/BC.png');
+      background-size: contain;
+      background-repeat: no-repeat;
+      background-position: center;
+    }
+  
+    .website-name {
+      color: white;
+      font-size: 20px;
+      font-weight: bold;
+    }
+  }
+  
+  .card-header {
+    font-size: 22px;
+    font-weight: 600;
+    color: #ffffff;
+    text-align: center;
+    margin-bottom: 20px;
+  }
+  
+  .card-body {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+  
+  /* 🔷 Form Styles */
+  .form-group {
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .form-label {
+    font-size: 14px;
+    color: white;
+    margin-bottom: 8px;
+  }
+  
+  .form-control {
+    padding: 12px;
+    font-size: 14px;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 6px;
+    background: rgba(255, 255, 255, 0.1);
+    color: white;
+    transition: border-color 0.3s;
+  }
+  
+  .form-control:focus {
+    border-color: #667eea;
+    outline: none;
+  }
+  
+  .form-control.invalid {
+    border-color: #e74c3c;
+  }
+  
+  .error {
+    font-size: 12px;
+    color: #e74c3c;
+    margin-top: 5px;
+  }
+  
+  /* 🔷 Button */
+  .btn {
+    padding: 10px;
+    background: #667eea;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background 0.3s;
+  }
+  
+  .btn:hover {
+    background: #764ba2;
+  }
+  
+  .links {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 10px;
+  
+    a {
+      color: #cfd8ff;
+      text-decoration: none;
+      font-size: 12px;
+  
+      &:hover {
+        text-decoration: underline;
+      }
+    }
+  }
+  
+  .spinner {
+    width: 16px;
+    height: 16px;
+    border: 2px solid #ffffff;
+    border-top: 2px solid transparent;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+  }
+  
+  @keyframes spin {
+    from {
+      transform: rotate(0deg);
+    }
+    to {
+      transform: rotate(360deg);
+    }
+  }
+  
