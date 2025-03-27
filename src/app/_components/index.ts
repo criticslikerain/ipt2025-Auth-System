@@ -1,1 +1,1 @@
-//hello world
+export * from './alert.component';
