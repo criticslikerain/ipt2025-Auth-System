@@ -1,1 +1,4 @@
-//hello world
+export enum Role {
+    User = 'User',
+    Admi = 'Admin'
+}
