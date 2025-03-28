@@ -1,23 +1,21 @@
 import { NgModule } from '@angular/core';
 import { Routes, RouterModule } from '@angular/router';
-import { LoginComponent } from './account/login.component';
-import { RegisterComponent } from './account/register.component';
-import { ForgotPasswordComponent } from './account/forgot-password.component';
-import { ResetPasswordComponent } from './account/reset-password.component';
-import { VerifyEmailComponent } from './account/verify-email.component';
+import { AuthGuard } from './_helpers/auth.guard';
+
+const accountModule = () => import('./account/account.module').then(x => x.AccountModule);
+const profileModule = () => import('./profile/profile.module').then(x => x.ProfileModule);
+const adminModule = () => import('./admin/admin.module').then(x => x.AdminModule);
 
 const routes: Routes = [
-  { path: 'login', component: LoginComponent },
-  { path: 'register', component: RegisterComponent },
-  { path: 'forgot-password', component: ForgotPasswordComponent },
-  { path: 'reset-password', component: ResetPasswordComponent },
-  { path: 'verify-email', component: VerifyEmailComponent },
-  { path: '', redirectTo: '/login', pathMatch: 'full' },  
-  { path: '**', redirectTo: '/login' }  
+    { path: '', redirectTo: '/login', pathMatch: 'full' },
+    { path: 'account', loadChildren: accountModule },
+    { path: 'profile', loadChildren: profileModule, canActivate: [AuthGuard] },
+    { path: 'admin', loadChildren: adminModule, canActivate: [AuthGuard] },
+    { path: '**', redirectTo: '' }
 ];
 
 @NgModule({
-  imports: [RouterModule.forRoot(routes)],
-  exports: [RouterModule]
+    imports: [RouterModule.forRoot(routes)],
+    exports: [RouterModule]
 })
 export class AppRoutingModule {}

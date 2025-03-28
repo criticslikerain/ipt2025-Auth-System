@@ -1,9 +1,11 @@
 import { Component } from '@angular/core';
-import { Router } from '@angular/router';
+import { Router, RouterModule } from '@angular/router';
 import { AccountService } from '@app/_services';
 
 @Component({
-  templateUrl: 'layout.component.html'
+  templateUrl: 'layout.component.html',
+  standalone: true,
+  imports: [RouterModule]
 })
 export class LayoutComponent {
   constructor(

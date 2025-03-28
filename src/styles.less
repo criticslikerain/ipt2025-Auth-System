@@ -1,0 +1,37 @@
+/* You can add global styles to this file */
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 15px;
+}
+
+.row {
+    display: flex;
+    flex-wrap: wrap;
+    margin: -15px;
+}
+
+.col {
+    flex: 1;
+    padding: 15px;
+}
+
+/* Add some spacing below the nav */
+app-nav + router-outlet[name="subnav"] + alert {
+    margin-top: 20px;
+}
+
+/* Basic responsive design */
+@media (max-width: 768px) {
+    .container {
+        padding: 0 10px;
+    }
+    
+    .row {
+        margin: -10px;
+    }
+    
+    .col {
+        padding: 10px;
+    }
+}
