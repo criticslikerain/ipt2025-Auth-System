@@ -1,1 +1,28 @@
-holaa amegahh
+<div class="container mt-5">
+    <div class="card">
+        <div class="card-header">
+            <h1>Welcome to Auth System</h1>
+        </div>
+        <div class="card-body">
+            <div *ngIf="loading" class="text-center">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+            </div>
+
+            <div *ngIf="!loading && user">
+                <h2>Hello, {{user.firstName}}!</h2>
+                <p>You're logged in to the Auth System</p>
+                <div class="user-details">
+                    <p><strong>Email:</strong> {{user.email}}</p>
+                    <p><strong>Role:</strong> {{user.role}}</p>
+                    <p><strong>Account Created:</strong> {{user.created | date:'medium'}}</p>
+                </div>
+            </div>
+
+            <div *ngIf="!loading && !user" class="alert alert-warning">
+                <p>Please log in to access your account details.</p>
+            </div>
+        </div>
+    </div>
+</div>

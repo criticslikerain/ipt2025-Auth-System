@@ -1,0 +1,8 @@
+[build]
+  command = "ng build --configuration=production"
+  publish = "dist/ipt2025-auth-system/browser"
+
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
