@@ -1,17 +1,14 @@
+export type Role = 'User' | 'Admin';
+
 export interface User {
     id: string;
-    title?: string;
-    firstName: string;
-    lastName: string;
     email: string;
-    role?: string;
-    isVerified?: boolean;
-    created?: Date;
-    updated?: Date;
-    password?: string;
-    confirmPassword?: string;
+    title?: string;
+    firstName?: string;
+    lastName?: string;
+    role?: Role;
     token?: string;
+    jwtToken?: string;
+    refreshToken?: string;
 }
-
-
 

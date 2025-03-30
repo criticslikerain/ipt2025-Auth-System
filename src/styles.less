@@ -1,37 +1,173 @@
-/* You can add global styles to this file */
-.container {
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 0 15px;
+/* You can add global styles to this file, and also import other style files */
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
 }
 
-.row {
+html, body {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+}
+
+body {
+    font-family: 'Segoe UI', sans-serif;
+    background-image: url('/assets/background.webp');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+    min-height: 100%;
+    width: 100%;
+}
+
+.app-container {
+    min-height: 100vh;
+    width: 100%;
+    padding: 20px;
     display: flex;
-    flex-wrap: wrap;
-    margin: -15px;
+    flex-direction: column;
+    align-items: center;
+    overflow: hidden;
 }
 
-.col {
+:host {
+    display: flex;
     flex: 1;
-    padding: 15px;
+    height: 100%;
+    width: 100%;
+    overflow: hidden;
 }
 
-/* Add some spacing below the nav */
-app-nav + router-outlet[name="subnav"] + alert {
-    margin-top: 20px;
+/* Remove the .form-control, .form-group, and .form-label global styles */
+
+.card {
+    background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-radius: 12px;
+    padding: 25px 40px;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+    width: 100%;
+    max-width: 800px;
+    margin: 0 auto;
 }
 
-/* Basic responsive design */
-@media (max-width: 768px) {
-    .container {
-        padding: 0 10px;
+.login-card {
+    max-width: 800px;
+    padding: 35px 20px;
+}
+
+.card-header {
+    color: white;
+    font-size: 2px;
+    margin-bottom: 20px;
+    text-align: center;
+}
+
+.card-body {
+    padding: 20px 0;
+}
+
+.form-group {
+    margin-bottom: 20px;
+    text-align: left;
+}
+
+.form-label {
+    display: block;
+    margin-bottom: 8px;
+    color: white;
+    text-align: left;
+}
+
+.form-control {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 6px;
+    background: rgba(255, 255, 255, 0.1);
+    color: white;
+    font-size: 14px;
+
+    &:focus {
+        outline: none;
+        border-color: #667eea;
     }
-    
-    .row {
-        margin: -10px;
-    }
-    
-    .col {
-        padding: 10px;
+
+    &.invalid {
+        border-color: #e74c3c;
     }
 }
+
+select.form-control {
+    option {
+        background-color: white;
+        color: black;
+    }
+}
+
+.error {
+    color: #e74c3c;
+    font-size: 12px;
+    margin-top: 5px;
+    text-align: left;
+}
+
+.btn {
+    width: 100%;
+    padding: 12px;
+    background: #667eea;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: bold;
+    cursor: pointer;
+    margin-bottom: 15px;
+
+    &:hover {
+        background: #764ba2;
+    }
+
+    &:disabled {
+        background: #cccccc;
+        cursor: not-allowed;
+    }
+}
+
+.links {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 15px;
+    gap: 20px;
+
+    a {
+        color: #cfd8ff;
+        text-decoration: none;
+        font-size: 14px;
+
+        &:hover {
+            text-decoration: underline;
+        }
+    }
+}
+
+.spinner {
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    border: 2px solid #ffffff;
+    border-top: 2px solid transparent;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin-right: 8px;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+

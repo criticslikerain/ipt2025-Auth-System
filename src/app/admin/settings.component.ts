@@ -40,6 +40,7 @@ import { FormsModule } from '@angular/forms';
                         type="email" 
                         [(ngModel)]="settings.fromEmail"
                         placeholder="noreply@example.com"
+                        class="form-control"
                     >
                 </div>
             </div>
@@ -53,20 +54,22 @@ import { FormsModule } from '@angular/forms';
                         [(ngModel)]="settings.sessionTimeout"
                         min="5"
                         max="120"
+                        class="form-control"
                     >
                 </div>
             </div>
 
             <div class="settings-actions">
-                <button class="btn-save" (click)="saveSettings()">Save Settings</button>
-                <button class="btn-reset" (click)="resetSettings()">Reset to Default</button>
+                <button class="btn btn-primary" (click)="saveSettings()">Save Settings</button>
+                <button class="btn btn-secondary" (click)="resetSettings()">Reset to Default</button>
             </div>
         </div>
     `,
     styles: [`
         .settings-container {
-            padding: 1rem;
+            padding: 2rem;
             max-width: 800px;
+            margin: 0 auto;
         }
 
         .settings-section {
@@ -77,10 +80,15 @@ import { FormsModule } from '@angular/forms';
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
 
-        .settings-section h3 {
-            margin-top: 0;
-            margin-bottom: 1rem;
+        h2 {
             color: #2c3e50;
+            margin-bottom: 1.5rem;
+        }
+
+        h3 {
+            color: #34495e;
+            margin-bottom: 1rem;
+            font-size: 1.2rem;
         }
 
         .setting-item {
@@ -93,8 +101,7 @@ import { FormsModule } from '@angular/forms';
             color: #666;
         }
 
-        .setting-item input[type="email"],
-        .setting-item input[type="number"] {
+        .form-control {
             width: 100%;
             padding: 0.5rem;
             border: 1px solid #ddd;
@@ -106,23 +113,27 @@ import { FormsModule } from '@angular/forms';
             margin-top: 2rem;
         }
 
-        .btn-save,
-        .btn-reset {
+        .btn {
             padding: 0.5rem 1rem;
             border: none;
             border-radius: 4px;
             cursor: pointer;
             margin-right: 1rem;
+            font-weight: 500;
         }
 
-        .btn-save {
-            background-color: #28a745;
+        .btn-primary {
+            background-color: #3498db;
             color: white;
         }
 
-        .btn-reset {
-            background-color: #6c757d;
+        .btn-secondary {
+            background-color: #95a5a6;
             color: white;
+        }
+
+        .btn:hover {
+            opacity: 0.9;
         }
     `]
 })
@@ -136,8 +147,8 @@ export class SettingsComponent {
     };
 
     saveSettings() {
-        // Implement save functionality
         console.log('Saving settings:', this.settings);
+        // Implement save functionality
     }
 
     resetSettings() {

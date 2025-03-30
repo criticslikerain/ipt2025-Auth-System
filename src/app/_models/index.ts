@@ -1,6 +1,5 @@
 export * from './account';
-export * from './alert';
-export * from './role';
+export { Role } from './user';
 
 // Response interfaces
 export interface ApiResponse<T> {

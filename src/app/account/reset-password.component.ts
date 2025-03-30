@@ -1,9 +1,10 @@
-import { Component, OnInit, ViewEncapsulation } from '@angular/core';
-import { Router, ActivatedRoute } from '@angular/router';
-import { UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
+import { Component, OnInit } from '@angular/core';
+import { Router, ActivatedRoute, RouterModule } from '@angular/router';
+import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { first } from 'rxjs/operators';
 import { AccountService, AlertService } from '@app/_services';
 import { MustMatch } from '@app/_helpers';
+import { CommonModule } from '@angular/common';
 
 enum TokenStatus {
   Validating,
@@ -11,27 +12,40 @@ enum TokenStatus {
   Invalid
 }
 
+enum ResetStatus {
+  Ready,
+  Success
+}
+
 @Component({
   selector: 'app-reset-password',
   templateUrl: 'reset-password.component.html',
   styleUrls: ['./reset-password.component.less'],
-  encapsulation: ViewEncapsulation.None
+  standalone: true,
+  imports: [
+    CommonModule,
+    ReactiveFormsModule,
+    RouterModule
+  ]
 })
 export class ResetPasswordComponent implements OnInit {
   TokenStatus = TokenStatus;
+  ResetStatus = ResetStatus;
   tokenStatus = TokenStatus.Validating;
+  resetStatus = ResetStatus.Ready;
   token: string | null = null;
-  form!: UntypedFormGroup; 
+  form!: FormGroup;
   loading = false;
   submitted = false;
+  countdown = 3;
 
   constructor(
-    private formBuilder: UntypedFormBuilder,
+    private formBuilder: FormBuilder,
     private route: ActivatedRoute,
     private router: Router,
     private accountService: AccountService,
     private alertService: AlertService
-  ) {}
+  ) { }
 
   ngOnInit() {
     this.form = this.formBuilder.group({
@@ -42,18 +56,24 @@ export class ResetPasswordComponent implements OnInit {
     });
 
     const token = this.route.snapshot.queryParams['token'];
+
+    // remove token from url to prevent http referer leakage
+    this.router.navigate([], { 
+      relativeTo: this.route, 
+      replaceUrl: true,
+      queryParams: { token: null },
+    });
+
     if (!token) {
       this.tokenStatus = TokenStatus.Invalid;
       return;
     }
 
-    this.router.navigate([], { relativeTo: this.route, replaceUrl: true });
-
+    this.token = token;
     this.accountService.validateResetToken(token)
       .pipe(first())
       .subscribe({
         next: () => {
-          this.token = token;
           this.tokenStatus = TokenStatus.Valid;
         },
         error: () => {
@@ -62,28 +82,38 @@ export class ResetPasswordComponent implements OnInit {
       });
   }
 
-  get f() {
-    return this.form.controls; 
-  }
+  get f() { return this.form.controls; }
 
   onSubmit() {
     this.submitted = true;
     this.alertService.clear();
 
-    if (this.form.invalid) return;
+    if (this.form.invalid) {
+      return;
+    }
 
     this.loading = true;
-    this.accountService.resetPassword(this.token!, this.f['password'].value, this.f['confirmPassword'].value) 
+    this.accountService.resetPassword(this.token!, this.f['password'].value)
       .pipe(first())
       .subscribe({
         next: () => {
-          this.alertService.success('Password reset successful, you can now login', { keepAfterRouteChange: true });
-          this.router.navigate(['../login'], { relativeTo: this.route });
+          this.resetStatus = ResetStatus.Success;
+          this.startCountdown();
         },
         error: error => {
           this.alertService.error(error);
           this.loading = false;
         }
       });
+  }
+
+  private startCountdown() {
+    const timer = setInterval(() => {
+      this.countdown--;
+      if (this.countdown <= 0) {
+        clearInterval(timer);
+        this.router.navigate(['../login'], { relativeTo: this.route });
+      }
+    }, 1000);
   }
 }

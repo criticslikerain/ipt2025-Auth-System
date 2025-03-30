@@ -4,7 +4,7 @@ html, body {
     font-family: 'Segoe UI', sans-serif;
     height: 100vh;
     width: 100vw;
-    background-image: url('assets/background.webp');
+    background-image: url('/assets/background.webp');
     background-size: cover;
     background-position: center;
     background-repeat: no-repeat;
@@ -21,7 +21,7 @@ html, body {
   
   .container {
     width: 100%;
-    max-width: 400px;
+    max-width: 800px;
     padding: 40px 20px;
     display: flex;
     flex-direction: column;
@@ -29,13 +29,13 @@ html, body {
     justify-content: center;
   }
   
-  .card {
+  .login-card {
     background: rgba(255, 255, 255, 0.05);
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
     width: 100%;
     border-radius: 12px;
-    padding: 25px 30px;
+    padding: 35px 40px;
     box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
   }
   
@@ -44,24 +44,15 @@ html, body {
     display: flex;
     align-items: center;
     justify-content: center;
-    margin-bottom: 20px;
-    gap: 15px;
-    border-bottom: 2px solid rgba(255, 255, 255, 0.1);
-    padding-bottom: 15px;
-  
+    margin-bottom: 30px;
+    
     .logo {
-      width: 60px;
-      height: 60px;
-      background-image: url('assets/BC.png');
+      width: 80px;
+      height: 80px;
+      background-image: url('/assets/BC.png');
       background-size: contain;
       background-repeat: no-repeat;
       background-position: center;
-    }
-  
-    .website-name {
-      color: white;
-      font-size: 20px;
-      font-weight: bold;
     }
   }
   
@@ -73,97 +64,154 @@ html, body {
     margin-bottom: 20px;
   }
   
-  .card-body {
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
+  .login-body {
+    width: 100%;
+    max-width: 400px;  // Changed from 600px
+    margin: 0 auto;
   }
   
   /* 🔷 Form Styles */
   .form-group {
-    display: flex;
-    flex-direction: column;
-  }
-  
-  .form-label {
-    font-size: 14px;
-    color: white;
-    margin-bottom: 8px;
-  }
-  
-  .form-control {
-    padding: 12px;
-    font-size: 14px;
-    border: 1px solid rgba(255, 255, 255, 0.3);
-    border-radius: 6px;
-    background: rgba(255, 255, 255, 0.1);
-    color: white;
-    transition: border-color 0.3s;
-  }
-  
-  .form-control:focus {
-    border-color: #667eea;
-    outline: none;
-  }
-  
-  .form-control.invalid {
-    border-color: #e74c3c;
+    margin-bottom: 20px;
+    width: 100%;
+
+    .form-label {
+      display: block;
+      margin-bottom: 8px;
+      color: white;
+      font-size: 14px;
+      font-weight: 500;
+    }
+
+    .form-control {
+      width: 100%;
+      padding: 12px;
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      border-radius: 6px;
+      background: rgba(255, 255, 255, 0.1);
+      color: white;
+      font-size: 14px;
+      height: 45px;
+
+      &:focus {
+        outline: none;
+        border-color: #667eea;
+      }
+
+      &::placeholder {
+        color: rgba(255, 255, 255, 0.5);
+      }
+
+      &.invalid {
+        border-color: #e74c3c;
+      }
+    }
   }
   
   .error {
-    font-size: 12px;
     color: #e74c3c;
+    font-size: 12px;
     margin-top: 5px;
   }
   
   /* 🔷 Button */
   .btn {
-    padding: 10px;
+    width: 100%;
+    padding: 12px;
+    height: 45px;
     background: #667eea;
     color: white;
     border: none;
     border-radius: 6px;
-    font-size: 14px;
-    font-weight: bold;
+    font-size: 16px;
+    font-weight: 500;
     cursor: pointer;
-    transition: background 0.3s;
-  }
-  
-  .btn:hover {
-    background: #764ba2;
+    margin-top: 10px;
+
+    &:hover {
+      background: #764ba2;
+    }
+
+    &:disabled {
+      opacity: 0.7;
+      cursor: not-allowed;
+    }
   }
   
   .links {
     display: flex;
     justify-content: space-between;
-    margin-top: 10px;
-  
-    a {
-      color: #cfd8ff;
+    margin-top: 20px;
+    padding: 0 10px;
+
+    .link {
+      color: rgba(255, 255, 255, 0.8);
       text-decoration: none;
-      font-size: 12px;
-  
+      font-size: 14px;
+
       &:hover {
+        color: white;
         text-decoration: underline;
       }
     }
   }
   
   .spinner {
+    display: inline-block;
     width: 16px;
     height: 16px;
     border: 2px solid #ffffff;
     border-top: 2px solid transparent;
     border-radius: 50%;
     animation: spin 1s linear infinite;
+    margin-right: 8px;
   }
   
   @keyframes spin {
-    from {
-      transform: rotate(0deg);
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
+
+  .login-specific {
+    // Add any login-specific styles here
+    .remember-me {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      margin: 1rem 0;
+      color: white;
     }
-    to {
-      transform: rotate(360deg);
+
+    .forgot-password {
+      text-align: right;
+      margin-top: 1rem;
+      
+      a {
+        color: rgba(255, 255, 255, 0.7);
+        text-decoration: none;
+        
+        &:hover {
+          color: white;
+        }
+      }
     }
   }
+
+  
+// Remove all backdrop filters from body and html
+html, body {
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+
+// Adjust responsive behavior if needed
+@media (max-width: 576px) {
+    .container {
+        padding: 20px;
+    }
+    
+    .login-card {
+        padding: 25px 20px;
+    }
+}
   

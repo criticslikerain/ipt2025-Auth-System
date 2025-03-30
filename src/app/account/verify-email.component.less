@@ -2,7 +2,7 @@ body {
     margin: 0;
     padding: 0;
     height: 100%;
-    background-image: url('assets/background.webp');
+    background-image: url('../../assets/background.webp');
     background-size: cover;
     background-position: center;
     background-repeat: no-repeat;
@@ -32,7 +32,7 @@ body {
   .logo {
     width: 50px;
     height: 50px;
-    background-image: url('assets/BC.png');
+    background-image: url('../../assets/BC.png');
     background-size: contain;
     background-repeat: no-repeat;
     background-position: center;
@@ -114,5 +114,51 @@ body {
     border: none;
     border-top: 1px solid rgba(255, 255, 255, 0.2);
     margin: 10px 0 20px 0;
+  }
+
+  .registration-error {
+    text-align: center;
+    padding: 15px;
+    margin-bottom: 20px;
+    border-radius: 8px;
+    background: rgba(231, 76, 60, 0.15);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border: 1px solid rgba(231, 76, 60, 0.3);
+    color: #e74c3c;
+    font-size: 14px;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+
+    &::before {
+      content: '⚠️';
+      font-size: 16px;
+      font-weight: bold;
+    }
+
+    animation: fadeInSlide 0.5s ease-out;
+
+    a {
+      color: #cfd8ff;
+      text-decoration: none;
+
+      &:hover {
+        text-decoration: underline;
+      }
+    }
+  }
+
+  @keyframes fadeInSlide {
+    0% {
+      opacity: 0;
+      transform: translateY(-10px);
+    }
+    100% {
+      opacity: 1;
+      transform: translateY(0);
+    }
   }
   

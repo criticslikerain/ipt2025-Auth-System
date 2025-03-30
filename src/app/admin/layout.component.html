@@ -3,15 +3,39 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Account Management</title>
-  <link rel="stylesheet" href="layout.component.css" />
+  <title>Admin Panel</title>
+  <link rel="stylesheet" href="layout.component.less" />
 </head>
 <body>
 
-  <div class="p-4">
-    <div class="container">
-      <router-outlet></router-outlet>
-    </div>
+  <div class="admin-layout">
+    <nav class="admin-sidebar">
+      <div class="sidebar-header">
+        <h2>Admin Panel</h2>
+      </div>
+      <ul class="sidebar-nav">
+        <li>
+          <a routerLink="./dashboard" routerLinkActive="active">
+            <i class="fas fa-tachometer-alt"></i> Dashboard
+          </a>
+        </li>
+        <li>
+          <a routerLink="./accounts" routerLinkActive="active">
+            <i class="fas fa-users"></i> Accounts
+          </a>
+        </li>
+        <li>
+          <a routerLink="./settings" routerLinkActive="active">
+            <i class="fas fa-cog"></i> Settings
+          </a>
+        </li>
+      </ul>
+    </nav>
+    <main class="admin-content">
+      <div class="content-wrapper">
+        <router-outlet></router-outlet>
+      </div>
+    </main>
   </div>
 
 </body>
