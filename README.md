@@ -126,7 +126,7 @@ Key Responsibilities:
 ### Daily Workflow
 ```mermaid
 graph LR
-    A[Morning Standup] --> B[Task Development]
+    A[Evening Standup] --> B[Task Development]
     B --> C[Code Review]
     C --> D[Testing]
     D --> E[Deployment]
