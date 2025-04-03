@@ -1,13 +1,23 @@
-import { AccountService } from '../_services/account.service';
+import { APP_INITIALIZER } from '@angular/core';
+import { AccountService } from '@app/_services/account.service';
 
 export function appInitializer(accountService: AccountService) {
-    return () => new Promise(resolve => {
-        // attempt to refresh token on app start up to auto authenticate
+    return () => new Promise((resolve, reject) => {
         accountService.refreshToken()
             .subscribe({
-                next: () => {},
-                error: () => {},
-                complete: () => resolve()
+                next: () => {
+                    resolve(true);
+                },
+                error: (error: Error) => {
+                    reject(error);
+                }
             });
     });
+}
+
+export const appInitializerProvider = {
+    provide: APP_INITIALIZER,
+    useFactory: appInitializer,
+    deps: [AccountService],
+    multi: true
 }

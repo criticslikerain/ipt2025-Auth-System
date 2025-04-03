@@ -4,14 +4,14 @@ import { LayoutComponent } from './layout.component';
 import { DashboardComponent } from './dashboard.component';
 import { UserManagementComponent } from './user-management.component';
 import { SettingsComponent } from './settings.component';
-import { AuthGuard } from '@app/_helpers/auth.guard';
-import { AdminGuard } from '@app/_helpers/admin.guard';
+import { authGuard } from '../_helpers/auth.guard';
+import { adminGuard } from '../_helpers/admin.guard';
 
 const routes: Routes = [
     {
         path: '',
         component: LayoutComponent,
-        canActivate: [AuthGuard, AdminGuard],
+        canActivate: [authGuard, adminGuard],
         children: [
             {
                 path: '',
@@ -42,3 +42,4 @@ const routes: Routes = [
     exports: [RouterModule]
 })
 
+export class AdminRoutingModule {}

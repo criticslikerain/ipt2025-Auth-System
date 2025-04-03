@@ -1,43 +1,37 @@
-<div class="container">
-    <h1>My Profile</h1>
-    <div class="card">
-        <div class="card-body">
-            <form *ngIf="form" [formGroup]="form" (ngSubmit)="onSubmit()">
-                <div class="mb-3">
-                    <label class="form-label">First Name</label>
-                    <input type="text" formControlName="firstName" class="form-control" 
-                        [ngClass]="{ 'is-invalid': submitted && form.get('firstName')?.errors }" />
-                    <div *ngIf="submitted && form.get('firstName')?.errors" class="invalid-feedback">
-                        <div *ngIf="form.get('firstName')?.errors?.['required']">First Name is required</div>
-                    </div>
-                </div>
-                <div class="mb-3">
-                    <label class="form-label">Last Name</label>
-                    <input type="text" formControlName="lastName" class="form-control" 
-                        [ngClass]="{ 'is-invalid': submitted && form.get('lastName')?.errors }" />
-                    <div *ngIf="submitted && form.get('lastName')?.errors" class="invalid-feedback">
-                        <div *ngIf="form.get('lastName')?.errors?.['required']">Last Name is required</div>
-                    </div>
-                </div>
-                <div class="mb-3">
-                    <label class="form-label">Email</label>
-                    <input type="email" formControlName="email" class="form-control" 
-                        [ngClass]="{ 'is-invalid': submitted && form.get('email')?.errors }" />
-                    <div *ngIf="submitted && form.get('email')?.errors" class="invalid-feedback">
-                        <div *ngIf="form.get('email')?.errors?.['required']">Email is required</div>
-                        <div *ngIf="form.get('email')?.errors?.['email']">Email must be valid</div>
-                    </div>
-                </div>
-                <div class="d-flex justify-content-between">
-                    <button type="submit" class="btn btn-primary" [disabled]="loading">
-                        <span *ngIf="loading" class="spinner-border spinner-border-sm me-1"></span>
-                        Save Changes
-                    </button>
-                    <button type="button" class="btn btn-link" routerLink="/profile/password">
-                        Change Password
-                    </button>
-                </div>
-            </form>
+<div class="details-container">
+    <h2>Personal Details</h2>
+    <form [formGroup]="form" (ngSubmit)="onSubmit()">
+        <div class="form-group">
+            <label for="firstName">First Name</label>
+            <input type="text" formControlName="firstName" class="form-control" 
+                [ngClass]="{ 'is-invalid': submitted && form.controls['firstName'].errors }" />
+            <div *ngIf="submitted && form.controls['firstName'].errors" class="invalid-feedback">
+                <div *ngIf="form.controls['firstName'].errors['required']">First Name is required</div>
+            </div>
         </div>
-    </div>
+        <div class="form-group">
+            <label for="lastName">Last Name</label>
+            <input type="text" formControlName="lastName" class="form-control" 
+                [ngClass]="{ 'is-invalid': submitted && form.controls['lastName'].errors }" />
+            <div *ngIf="submitted && form.controls['lastName'].errors" class="invalid-feedback">
+                <div *ngIf="form.controls['lastName'].errors['required']">Last Name is required</div>
+            </div>
+        </div>
+        <div class="form-group">
+            <label for="email">Email</label>
+            <input type="email" formControlName="email" class="form-control" 
+                [ngClass]="{ 'is-invalid': submitted && form.controls['email'].errors }" />
+            <div *ngIf="submitted && form.controls['email'].errors" class="invalid-feedback">
+                <div *ngIf="form.controls['email'].errors['required']">Email is required</div>
+                <div *ngIf="form.controls['email'].errors['email']">Email must be a valid email address</div>
+            </div>
+        </div>
+        <div class="form-group">
+            <button [disabled]="loading" class="btn btn-primary">
+                <span *ngIf="loading" class="spinner-border spinner-border-sm mr-1"></span>
+                Save Changes
+            </button>
+        </div>
+    </form>
+</div>
 

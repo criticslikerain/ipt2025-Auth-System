@@ -1,63 +1,65 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
-import { RouterModule } from '@angular/router';
+import { AccountService } from '@app/_services';
 import { first } from 'rxjs/operators';
-import { Account } from '../_models/account';
-import { AccountService, AlertService } from '../_services';
 
 @Component({
-    selector: 'app-details',
+    selector: 'app-profile-details',
     templateUrl: './details.component.html',
     styleUrls: ['./details.component.less'],
     standalone: true,
     imports: [
         CommonModule,
-        ReactiveFormsModule,
-        RouterModule
+        ReactiveFormsModule
     ]
 })
 export class DetailsComponent implements OnInit {
-    user: Account;
-    form: FormGroup;
+    form!: FormGroup;
     loading = false;
     submitted = false;
 
     constructor(
         private formBuilder: FormBuilder,
-        private accountService: AccountService,
-        private alertService: AlertService
-    ) {
-        this.user = this.accountService.userValue;
-    }
+        private accountService: AccountService
+    ) {}
 
     ngOnInit() {
         this.form = this.formBuilder.group({
-            firstName: [this.user.firstName, Validators.required],
-            lastName: [this.user.lastName, Validators.required],
-            email: [this.user.email, [Validators.required, Validators.email]]
+            firstName: ['', Validators.required],
+            lastName: ['', Validators.required],
+            email: ['', [Validators.required, Validators.email]]
         });
+
+        // Load user details
+        const userId = this.accountService.accountValue?.id;
+        if (userId) {
+            this.accountService.getById(userId)
+                .pipe(first())
+                .subscribe(account => {
+                    this.form.patchValue(account);
+                });
+        }
     }
 
     onSubmit() {
         this.submitted = true;
-
-        if (this.form.invalid) {
-            return;
-        }
+        if (this.form.invalid) return;
 
         this.loading = true;
-        this.accountService.update(this.user.id, this.form.value)
-            .pipe(first())
-            .subscribe({
-                next: () => {
-                    this.alertService.success('Profile updated successfully');
-                    this.loading = false;
-                },
-                error: error => {
-                    this.alertService.error(error);
-                    this.loading = false;
-                }
-            });
+        const userId = this.accountService.accountValue?.id;
+        if (userId) {
+            this.accountService.update(userId, this.form.value)
+                .pipe(first())
+                .subscribe({
+                    next: () => {
+                        this.loading = false;
+                    },
+                    error: error => {
+                        console.error(error);
+                        this.loading = false;
+                    }
+                });
+        }
     }
 }

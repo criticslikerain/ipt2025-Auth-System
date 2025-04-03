@@ -2,24 +2,20 @@ import { Injectable } from '@angular/core';
 import { Observable, Subject } from 'rxjs';
 import { filter } from 'rxjs/operators';
 
-export class Alert {
-    id: string;
+export interface Alert {
+    id?: string;
     type: AlertType;
     message: string;
-    autoClose: boolean;
-    keepAfterRouteChange: boolean;
-    fade: boolean;
-
-    constructor(init?:Partial<Alert>) {
-        Object.assign(this, init);
-    }
+    autoClose?: boolean;
+    keepAfterRouteChange?: boolean;
+    fade?: boolean;
 }
 
 export enum AlertType {
-    Success,
-    Error,
-    Info,
-    Warning
+    Success = 'success',
+    Error = 'error',
+    Info = 'info',
+    Warning = 'warning'
 }
 
 @Injectable({ providedIn: 'root' })
@@ -31,28 +27,28 @@ export class AlertService {
         return this.subject.asObservable().pipe(filter(x => x && x.id === id));
     }
 
-    success(message: string, options?: any) {
-        this.alert(new Alert({ ...options, type: AlertType.Success, message }));
+    success(message: string, options?: Partial<Alert>) {
+        this.alert(message, AlertType.Success, options);
     }
 
-    error(message: string, options?: any) {
-        this.alert(new Alert({ ...options, type: AlertType.Error, message }));
+    error(message: string, options?: Partial<Alert>) {
+        this.alert(message, AlertType.Error, options);
     }
 
-    info(message: string, options?: any) {
-        this.alert(new Alert({ ...options, type: AlertType.Info, message }));
+    info(message: string, options?: Partial<Alert>) {
+        this.alert(message, AlertType.Info, options);
     }
 
-    warn(message: string, options?: any) {
-        this.alert(new Alert({ ...options, type: AlertType.Warning, message }));
+    warn(message: string, options?: Partial<Alert>) {
+        this.alert(message, AlertType.Warning, options);
     }
 
-    alert(alert: Alert) {
-        alert.id = alert.id || this.defaultId;
+    alert(message: string, type: AlertType, options: Partial<Alert> = {}) {
+        const alert: Alert = { id: this.defaultId, type, message, ...options };
         this.subject.next(alert);
     }
 
     clear(id = this.defaultId) {
-        this.subject.next(new Alert({ id }));
+        this.subject.next({ id: id, type: AlertType.Info, message: '' });
     }
-//hello world
+}

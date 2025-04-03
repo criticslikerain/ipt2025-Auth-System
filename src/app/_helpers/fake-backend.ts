@@ -4,7 +4,7 @@ import { Observable, of, throwError } from 'rxjs';
 import { delay, materialize, dematerialize } from 'rxjs/operators';
 
 // array in local storage for registered users
-const usersKey = 'angular-auth-users';
+const usersKey = 'users';
 let users = JSON.parse(localStorage.getItem(usersKey) || '[]');
 
 @Injectable()
@@ -16,112 +16,56 @@ export class FakeBackendInterceptor implements HttpInterceptor {
 
         function handleRoute() {
             switch (true) {
-                case url.endsWith('/users/authenticate') && method === 'POST':
-                    return authenticate();
-                case url.endsWith('/users/register') && method === 'POST':
+                case url.endsWith('/account/register') && method === 'POST':
                     return register();
-                case url.endsWith('/users') && method === 'GET':
-                    return getUsers();
-                case url.match(/\/users\/\d+$/) && method === 'GET':
-                    return getUserById();
-                case url.match(/\/users\/\d+$/) && method === 'PUT':
-                    return updateUser();
-                case url.match(/\/users\/\d+$/) && method === 'DELETE':
-                    return deleteUser();
+                case url.endsWith('/account/login') && method === 'POST':
+                    return authenticate();
                 default:
                     // pass through any requests not handled above
                     return next.handle(request);
             }    
         }
 
-        // route functions
+        function register() {
+            const user = body;
+
+            if (users.find((x: any) => x.email === user.email)) {
+                return error(`Email ${user.email} is already registered`);
+            }
+
+            // assign user id and a few other properties then save
+            user.id = users.length ? Math.max(...users.map((x: any) => x.id)) + 1 : 1;
+            user.role = users.length === 0 ? 'Admin' : 'User';
+            users.push(user);
+            localStorage.setItem(usersKey, JSON.stringify(users));
+            return ok();
+        }
+
         function authenticate() {
-            const { username, password } = body;
-            const user = users.find((x: any) => x.username === username && x.password === password);
-            if (!user) return error('Username or password is incorrect');
+            const { email, password } = body;
+            const user = users.find((x: any) => x.email === email && x.password === password);
+            
+            if (!user) return error('Email or password is incorrect');
+            
             return ok({
                 ...basicDetails(user),
                 token: `fake-jwt-token.${user.id}`
             });
         }
 
-        function register() {
-            const user = body;
-
-            if (users.find((x: any) => x.username === user.username)) {
-                return error('Username "' + user.username + '" is already taken');
-            }
-
-            user.id = users.length ? Math.max(...users.map((x: any) => x.id)) + 1 : 1;
-            users.push(user);
-            localStorage.setItem(usersKey, JSON.stringify(users));
-            return ok();
-        }
-
-        function getUsers() {
-            if (!isLoggedIn()) return unauthorized();
-            return ok(users.map((x: any) => basicDetails(x)));
-        }
-
-        function getUserById() {
-            if (!isLoggedIn()) return unauthorized();
-
-            const user = users.find((x: any) => x.id === idFromUrl());
-            return ok(basicDetails(user));
-        }
-
-        function updateUser() {
-            if (!isLoggedIn()) return unauthorized();
-
-            let params = body;
-            let user = users.find((x: any) => x.id === idFromUrl());
-
-            if (!params.password) {
-                delete params.password;
-            }
-
-            Object.assign(user, params);
-            localStorage.setItem(usersKey, JSON.stringify(users));
-
-            return ok();
-        }
-
-        function deleteUser() {
-            if (!isLoggedIn()) return unauthorized();
-
-            users = users.filter((x: any) => x.id !== idFromUrl());
-            localStorage.setItem(usersKey, JSON.stringify(users));
-            return ok();
-        }
-
-        // helper functions
         function ok(body?: any) {
             return of(new HttpResponse({ status: 200, body }))
-                .pipe(delay(500));
+                .pipe(delay(500)); // delay observable to simulate server api call
         }
 
         function error(message: string) {
             return throwError(() => ({ error: { message } }))
-                .pipe(materialize(), delay(500), dematerialize());
-        }
-
-        function unauthorized() {
-            return throwError(() => ({ status: 401, error: { message: 'Unauthorized' } }))
-                .pipe(materialize(), delay(500), dematerialize());
+                .pipe(materialize(), delay(500), dematerialize()); // call materialize and dematerialize to ensure delay even if an error is thrown
         }
 
         function basicDetails(user: any) {
-            const { id, username, firstName, lastName } = user;
-            return { id, username, firstName, lastName };
-        }
-
-        function isLoggedIn() {
-            return headers.get('Authorization')?.includes('Bearer fake-jwt-token');
-        }
-
-        function idFromUrl() {
-            const urlParts = url.split('/');
-            return parseInt(urlParts[urlParts.length - 1]);
+            const { id, title, firstName, lastName, email, role } = user;
+            return { id, title, firstName, lastName, email, role };
         }
     }
 }

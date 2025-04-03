@@ -1,99 +1,156 @@
-body {
+html, body {
     margin: 0;
     padding: 0;
     font-family: 'Segoe UI', sans-serif;
-    height: 100%;
-    overflow: hidden;
-    background-image: url('assets/background.webp');
+    height: 100vh;
+    width: 100vw;
+    background-image: url('/assets/background.webp');
     background-size: cover;
     background-position: center;
     background-repeat: no-repeat;
     display: flex;
-    align-items: flex-start;
+    align-items: center;
     justify-content: center;
-    padding-top: 40px;
-  }
-  
-  .container {
+    overflow: hidden;
+}
+
+.container {
     width: 100%;
-    max-width: 420px;
-    padding: 30px 20px;
-  }
-  
-  .card {
-    background: rgba(255, 255, 255, 0.05);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    border-radius: 12px;
-    padding: 25px 30px;
-    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
-  }
-  
-  .brand-box {
+    max-width: 400px;
+    padding: 20px;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 10px;
+}
+
+.login-card {
+    background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    width: 100%;
+    border-radius: 12px;
+    padding: 25px 30px;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+}
+
+// Add styles for registration success message
+.registration-success {
+    text-align: center;
+    padding: 15px;
     margin-bottom: 20px;
+    border-radius: 8px;
+    background: rgba(46, 213, 115, 0.15);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border: 1px solid rgba(46, 213, 115, 0.3);
+    color: #2ed573;
+    font-size: 14px;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+
+    &::before {
+        content: '✓';
+        font-size: 16px;
+        font-weight: bold;
+    }
+
+    animation: fadeInSlide 0.5s ease-out;
+}
+
+.registration-error {
+    text-align: center;
+    padding: 15px;
+    margin-bottom: 20px;
+    border-radius: 8px;
+    background: rgba(231, 76, 60, 0.15);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border: 1px solid rgba(231, 76, 60, 0.3);
+    color: #e74c3c;
+    font-size: 14px;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+
+    &::before {
+        content: '✕';
+        font-size: 16px;
+        font-weight: bold;
+    }
+
+    animation: fadeInSlide 0.5s ease-out;
+}
+
+@keyframes fadeInSlide {
+    0% {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.brand-box {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 20px;
+    gap: 15px;
     border-bottom: 2px solid rgba(255, 255, 255, 0.1);
     padding-bottom: 15px;
-  
+
     .logo {
-      width: 60px;
-      height: 60px;
-      background-image: url('assets/BC.png');
-      background-size: contain;
-      background-repeat: no-repeat;
-      background-position: center;
+        width: 60px;
+        height: 60px;
+        background-image: url('/assets/BC.png');
+        background-size: contain;
+        background-repeat: no-repeat;
+        background-position: center;
     }
-  
-    .website-name {
-      color: white;
-      font-size: 20px;
-      font-weight: bold;
-      text-align: center;
-      line-height: 1.2;
-    }
-  }
-  
-  .card-header {
-    font-size: 22px;
-    font-weight: 600;
-    color: #ffffff;
-    text-align: center;
-    margin-bottom: 20px;
-  }
-  
-  .card-body {
+}
+
+.login-body {
     display: flex;
     flex-direction: column;
-    gap: 20px;
-  }
-  
-  .form-row {
+    gap: 15px;
+}
+
+.form-row {
     display: flex;
     gap: 15px;
-    flex-wrap: wrap;
-  
-    .half {
-      flex: 1 1 48%;
+    margin-bottom: 15px;
+
+    .form-group {
+        flex: 1;
+        margin-bottom: 0;
     }
-  }
-  
-  .form-group {
+}
+
+.form-group {
     display: flex;
     flex-direction: column;
-    width: 100%;
-  }
-  
-  .form-label {
+    margin-bottom: 15px;
+
+    &.accept-terms {
+        margin-top: -5px;
+    }
+}
+
+.form-label {
     font-size: 14px;
     color: white;
     margin-bottom: 8px;
-  }
-  
-  .form-control {
+}
+
+.form-control {
     padding: 12px;
     font-size: 14px;
     border: 1px solid rgba(255, 255, 255, 0.3);
@@ -101,47 +158,43 @@ body {
     background: rgba(255, 255, 255, 0.1);
     color: white;
     transition: border-color 0.3s;
-    appearance: none;
-  }
-  
-  select.form-control option {
-    color: #000;
-  }
-  
-  .form-control:focus {
-    border-color: #667eea;
-    outline: none;
-  }
-  
-  .form-control.invalid {
-    border-color: #e74c3c;
-  }
-  
-  .form-check {
-    display: flex;
-    align-items: center;
-    color: white;
-    font-size: 13px;
-    margin-top: -10px;
-  
-    input {
-      margin-right: 8px;
+
+    &:focus {
+        border-color: #667eea;
+        outline: none;
     }
-  }
-  
-  .full-width {
-    margin-top: 10px;
-    justify-content: center;
-  }
-  
-  .error {
+
+    &.invalid {
+        border-color: #e74c3c;
+    }
+
+    // Style only the dropdown options
+    option {
+        color: black;
+        background: white;
+    }
+}
+
+.error {
     font-size: 12px;
     color: #e74c3c;
     margin-top: 5px;
-  }
-  
-  .btn {
-    padding: 10px;
+}
+
+.checkbox-container {
+    display: flex;
+    align-items: center;
+    color: white;
+    font-size: 14px;
+    cursor: pointer;
+    
+    input[type="checkbox"] {
+        margin-right: 8px;
+    }
+}
+
+.btn {
+    padding: 12px;
     background: #667eea;
     color: white;
     border: none;
@@ -152,45 +205,56 @@ body {
     transition: background 0.3s;
     width: 100%;
     margin-top: 10px;
-  }
-  
-  .btn:hover {
-    background: #764ba2;
-  }
-  
-  .links {
+
+    &:hover {
+        background: #764ba2;
+    }
+
+    &:disabled {
+        opacity: 0.7;
+        cursor: not-allowed;
+    }
+}
+
+.links {
     display: flex;
     justify-content: center;
     margin-top: 10px;
-  
+
     a {
-      color: #cfd8ff;
-      text-decoration: none;
-      font-size: 12px;
-  
-      &:hover {
-        text-decoration: underline;
-      }
+        color: #cfd8ff;
+        text-decoration: none;
+        font-size: 12px;
+
+        &:hover {
+            text-decoration: underline;
+        }
     }
-  }
-  
-  .spinner {
+}
+
+.spinner {
+    display: inline-block;
     width: 16px;
     height: 16px;
-    border: 2px solid #ffffff;
-    border-top: 2px solid transparent;
+    border: 2px solid rgba(255, 255, 255, 0.3);
     border-radius: 50%;
-    animation: spin 1s linear infinite;
-    display: inline-block;
+    border-top-color: white;
+    animation: spin 1s ease-in-out infinite;
     margin-right: 8px;
-  }
-  
-  @keyframes spin {
-    from {
-      transform: rotate(0deg);
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+// Add responsive styles for form-row
+@media (max-width: 480px) {
+    .form-row {
+        flex-direction: column;
+        gap: 15px;
+
+        .form-group {
+            margin-bottom: 0;
+        }
     }
-    to {
-      transform: rotate(360deg);
-    }
-  }
-  
+}

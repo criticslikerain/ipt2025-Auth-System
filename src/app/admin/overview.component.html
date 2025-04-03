@@ -9,9 +9,25 @@
 </head>
 <div class="p-4">
     <div class="container">
-      <h1>Admin</h1>
-      <p>This section can only be accessed by administrators.</p>
-      <p><a routerLink="accounts">Manage Accounts</a></p>
+        <h1>Admin Overview</h1>
+        <p>Welcome to the admin section. Use the navigation menu to manage different aspects of the system.</p>
+        
+        <div class="quick-links">
+            <h2>Quick Links</h2>
+            <div class="links-grid">
+                <a routerLink="../accounts" class="quick-link-card">
+                    <i class="fas fa-users"></i>
+                    <span>Manage Accounts</span>
+                </a>
+                <a routerLink="../settings" class="quick-link-card">
+                    <i class="fas fa-cog"></i>
+                    <span>System Settings</span>
+                </a>
+                <a routerLink="../dashboard" class="quick-link-card">
+                    <i class="fas fa-chart-bar"></i>
+                    <span>View Dashboard</span>
+                </a>
+            </div>
+        </div>
     </div>
-  </div>
   

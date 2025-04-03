@@ -1,21 +1,13 @@
 <!-- Main Navigation -->
 <app-nav></app-nav>
 
-<!-- Secondary Navigation Outlet -->
-<router-outlet name="subnav"></router-outlet>
+<!-- Main Content Area -->
+<div class="app-container">
+    <router-outlet></router-outlet>
+</div>
 
 <!-- Alert Component -->
-<alert></alert>
-
-<!-- Main Content Area -->
-<div class="container">
-    <div class="row">
-        <div class="col">
-            <!-- Primary Router Outlet -->
-            <router-outlet></router-outlet>
-        </div>
-    </div>
-</div>
+<app-alert></app-alert>
 
 <!-- Loading Spinner -->
 <app-loading></app-loading>
