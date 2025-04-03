@@ -8,12 +8,12 @@ This project was generated with [Angular CLI](https://github.com/angular/angular
 
 ```ascii
 +------------------------+    +------------------------+
-|     FRONTEND TEAM     |     |     BACKEND TEAM       |
+|     FRONTEND TEAM      |    |     BACKEND TEAM       |
 |------------------------|    |------------------------|
 | ⭐ Renfred            |     | ⭐ Nathaniel          |
-| ⭐ Jevy              |      | ⭐ Marneil            |
-| ⭐ Arjane            |      |                        |
-| ⭐ Aleson            |      |                        |
+| ⭐ Jevy               |     | ⭐ Marneil            |
+| ⭐ Arjane             |     |                        |
+| ⭐ Aleson             |     |                        |
 +------------------------+    +------------------------+
 ```
 
