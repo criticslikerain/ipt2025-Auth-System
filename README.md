@@ -17,7 +17,7 @@ This project was generated with [Angular CLI](https://github.com/angular/angular
 +------------------------+    +------------------------+
 ```
 
-## 🎨 Frontend Warriors
+## 🎨 Frontend 
 
 ### 🔐 Renfred | Authentication Specialist
 ```yaml
@@ -79,7 +79,7 @@ Tools:
   - Error Interceptors
 ```
 
-## ⚙️ Backend Titans
+## ⚙️ Backend 
 
 ### 🛡️ Nathaniel | API Guardian
 ```yaml
@@ -133,7 +133,7 @@ graph LR
 ```
 
 ### Communication Channels
-- 📢 Daily Standups (9:00 AM)
+- 📢 Daily Standups (9:00 PM- SUNDAY)
 - 💬 Discord Team Channel
 - 📝 Jira Task Board
 - 📥 Weekly Progress Reports
@@ -145,12 +145,6 @@ graph LR
 - 🔄 Regular git commits
 - 🎯 Follow style guides
 
-## 🎯 Success Metrics
-- Code Quality: 90%+ test coverage
-- Performance: <2s page load time
-- Security: 0 critical vulnerabilities
-- Documentation: Complete API docs
-- Collaboration: Daily commits
 
 ## 🚀 Project Milestones
 1. Setup & Configuration
