@@ -2,7 +2,6 @@ import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { AccountService } from '@app/_services';
-import { LogoutDialogComponent } from '@app/_components/logout-dialog.component';
 
 @Component({
     selector: 'app-profile-layout',
@@ -11,8 +10,7 @@ import { LogoutDialogComponent } from '@app/_components/logout-dialog.component'
     standalone: true,
     imports: [
         CommonModule,
-        RouterModule,
-        LogoutDialogComponent
+        RouterModule
     ]
 })
 export class LayoutComponent {

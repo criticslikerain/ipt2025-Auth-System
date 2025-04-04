@@ -282,37 +282,56 @@ initializeDatabase().then(() => {
         try {
             const { token } = req.body;
 
+            console.log('Backend: Received verification request with token:', token);
+
             if (!token) {
+                console.error('Backend: No token provided in request');
                 return res.status(400).json({ message: 'Verification token is required' });
             }
 
             const connection = await pool.getConnection();
 
             try {
+                // First, check if the token exists and hasn't expired
                 const [users] = await connection.execute(
-                    'SELECT * FROM accounts WHERE verificationToken = ?',
+                    'SELECT * FROM accounts WHERE verificationToken = ? AND verified IS NULL',
                     [token]
                 );
+
+                console.log('Backend: Found users with token:', users.length);
 
                 const user = users[0];
 
                 if (!user) {
-                    return res.status(400).json({ message: 'Invalid verification token' });
+                    console.error('Backend: Invalid or expired verification token');
+                    return res.status(400).json({ 
+                        message: 'Invalid verification token. The token may have expired or already been used.' 
+                    });
                 }
 
                 // Update user verification status
                 await connection.execute(
-                    'UPDATE accounts SET verified = NOW(), verificationToken = NULL WHERE id = ?',
+                    `UPDATE accounts 
+                     SET verified = CURRENT_TIMESTAMP,
+                         verificationToken = NULL
+                     WHERE id = ?`,
                     [user.id]
                 );
 
-                res.json({ message: 'Email verification successful' });
+                console.log('Backend: Successfully verified user:', user.id);
+
+                res.json({ 
+                    message: 'Email verification successful',
+                    email: user.email // Include email for confirmation
+                });
             } finally {
                 connection.release();
             }
         } catch (error) {
-            console.error('Verification error:', error);
-            res.status(500).json({ message: 'Error during email verification' });
+            console.error('Backend: Verification error:', error);
+            res.status(500).json({ 
+                message: 'Error during email verification. Please try again later.' 
+            });
         }
     });
 
@@ -632,15 +651,27 @@ initializeDatabase().then(() => {
     app.get('/api/account/:id', authenticateToken, async (req, res) => {
         try {
             const userId = req.params.id;
-            const user = await db.query('SELECT * FROM users WHERE id = ?', [userId]);
-            
-            if (user.length === 0) {
-                return res.status(404).json({ message: 'User not found' });
-            }
+            const connection = await pool.getConnection();
 
-            // Remove sensitive data before sending
-            const { password, ...userWithoutPassword } = user[0];
-            res.json(userWithoutPassword);
+            try {
+                const [users] = await connection.execute(
+                    'SELECT id, title, firstName, lastName, email, role, created, updated FROM accounts WHERE id = ?',
+                    [userId]
+                );
+
+                if (users.length === 0) {
+                    return res.status(404).json({ message: 'User not found' });
+                }
+
+                // Check if user has permission to access this data
+                if (req.user.role !== 'Admin' && req.user.id !== parseInt(userId)) {
+                    return res.status(403).json({ message: 'Unauthorized access to this account' });
+                }
+
+                res.json(users[0]);
+            } finally {
+                connection.release();
+            }
         } catch (error) {
             console.error('Error fetching user:', error);
             res.status(500).json({ message: 'Internal server error' });
@@ -652,14 +683,28 @@ initializeDatabase().then(() => {
         const authHeader = req.headers['authorization'];
         const token = authHeader && authHeader.split(' ')[1];
 
+        console.log('Auth Middleware:', {
+            path: req.path,
+            authHeader: authHeader,
+            token: token ? `${token.substring(0, 10)}...` : 'none'
+        });
+
         if (!token) {
-            return res.sendStatus(401);
+            console.log('Auth Middleware: No token provided');
+            return res.status(401).json({ message: 'Authentication token is required' });
         }
 
-        jwt.verify(token, process.env.JWT_SECRET, (err, user) => {
+        jwt.verify(token, process.env.JWT_SECRET || 'your-secret-key', (err, user) => {
             if (err) {
-                return res.sendStatus(403);
+                console.error('Auth Middleware: Token verification failed:', err.message);
+                return res.status(403).json({ message: 'Invalid or expired token' });
             }
+            
+            console.log('Auth Middleware: Token verified successfully for user:', {
+                id: user.id,
+                email: user.email,
+                role: user.role
+            });
             req.user = user;
             next();
         });

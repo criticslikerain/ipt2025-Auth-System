@@ -2,7 +2,7 @@
 
         <form [formGroup]="form" (ngSubmit)="onSubmit()">
             <div *ngIf="registrationSuccess" class="registration-success">
-                Success!
+                Success! Check Email for Verification.
             </div>
             <div *ngIf="registrationError" class="registration-error">
                 {{ registrationError }}

@@ -2,47 +2,66 @@ import { Injectable } from '@angular/core';
 import { Router } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
 import { BehaviorSubject, Observable, throwError } from 'rxjs';
-import { catchError, map } from 'rxjs/operators';
+import { map, catchError, tap } from 'rxjs/operators';
 import { environment } from '@environments/environment';
-import { Account, RegisterRequest, ResetPasswordRequest } from '@app/_models';
+import { Account, RegisterRequest } from '@app/_models';
 
 @Injectable({ providedIn: 'root' })
 export class AccountService {
     private accountSubject: BehaviorSubject<Account | null>;
     public account: Observable<Account | null>;
-    private logoutSubject = new BehaviorSubject<boolean>(false);
-    public logoutState = this.logoutSubject.asObservable();
 
     constructor(
         private router: Router,
         private http: HttpClient
     ) {
-        this.accountSubject = new BehaviorSubject<Account | null>(
-            JSON.parse(localStorage.getItem('user')!)
-        );
+        this.accountSubject = new BehaviorSubject<Account | null>(this.getUserFromStorage());
         this.account = this.accountSubject.asObservable();
+    }
+
+    private getUserFromStorage(): Account | null {
+        const storedUser = localStorage.getItem('user');
+        if (storedUser) {
+            try {
+                const user = JSON.parse(storedUser);
+                if (user && user.jwtToken) {
+                    return user;
+                }
+            } catch (e) {
+                console.error('Error parsing stored user:', e);
+            }
+            // Clear invalid storage
+            localStorage.removeItem('user');
+        }
+        return null;
     }
 
     public get accountValue() {
         return this.accountSubject.value;
     }
 
-    // Add this method to your AccountService class
-    getById(id: string) {
-        return this.http.get<Account>(`${environment.apiUrl}/api/account/${id}`)
+    getById(id: string | number) {
+        const numericId = typeof id === 'string' ? parseInt(id) : id;
+        console.log('AccountService: Getting user by ID:', numericId);
+        console.log('AccountService: Current auth token:', this.accountValue?.jwtToken);
+        
+        return this.http.get<Account>(`${environment.apiUrl}/api/account/${numericId}`)
             .pipe(
+                tap(response => console.log('AccountService: User data received:', response)),
                 catchError(error => {
-                    console.error('Error fetching account:', error);
+                    console.error('AccountService: Error fetching user:', error);
+                    if (error.status === 401) {
+                        console.log('AccountService: Unauthorized, logging out');
+                        this.logout();
+                    }
                     return throwError(() => error);
                 })
             );
     }
 
-    // Update account
     update(id: string, params: any) {
         return this.http.put<Account>(`${environment.apiUrl}/api/accounts/${id}`, params)
             .pipe(map(account => {
-                // update stored account if the logged in account updated their own record
                 if (account.id === this.accountValue?.id) {
                     account = { ...this.accountValue, ...account };
                     localStorage.setItem('user', JSON.stringify(account));
@@ -52,44 +71,44 @@ export class AccountService {
             }));
     }
 
-    // Delete account
     delete(id: string) {
         return this.http.delete(`${environment.apiUrl}/api/accounts/${id}`)
             .pipe(map(() => {
-                // auto logout if the logged in account deleted their own record
                 if (id === this.accountValue?.id) {
                     this.logout();
                 }
             }));
     }
 
-    // Login
     login(email: string, password: string) {
         return this.http.post<Account>(`${environment.apiUrl}/api/account/login`, { email, password })
-            .pipe(map(user => {
-                localStorage.setItem('user', JSON.stringify(user));
-                this.accountSubject.next(user);
-                return user;
-            }));
+            .pipe(
+                tap(account => {
+                    console.log('AccountService: Login response:', account);
+                    if (!account.jwtToken) {
+                        console.error('AccountService: No JWT token in login response');
+                        throw new Error('Login failed: No authentication token received');
+                    }
+                    console.log('AccountService: Storing account data');
+                    localStorage.setItem('user', JSON.stringify(account));
+                    this.accountSubject.next(account);
+                }),
+                catchError(error => {
+                    console.error('AccountService: Login failed:', error);
+                    return throwError(() => error);
+                })
+            );
     }
 
-    // Logout
     logout() {
-        // Signal logout state change
-        this.logoutSubject.next(true);
-        
-        // Remove user from local storage after delay
-        setTimeout(() => {
-            localStorage.removeItem('user');
-            this.accountSubject.next(null);
-            this.logoutSubject.next(false);
-            this.router.navigate(['/account/login']);
-        }, 3000);
+        console.log('AccountService: Logging out...');
+        // Remove user from local storage and set current user to null
+        localStorage.removeItem('user');
+        this.accountSubject.next(null);
+        this.router.navigate(['/account/login']);
     }
 
-    // Register
     register(user: RegisterRequest) {
-        console.log('Attempting registration to:', `${environment.apiUrl}/api/account/register`);
         return this.http.post(`${environment.apiUrl}/api/account/register`, user)
             .pipe(
                 catchError(error => {
@@ -99,22 +118,26 @@ export class AccountService {
             );
     }
 
-    // Verify Email
     verifyEmail(token: string) {
-        return this.http.post(`${environment.apiUrl}/api/account/verify-email`, { token });
+        console.log('AccountService: Attempting to verify email with token:', token);
+        return this.http.post(`${environment.apiUrl}/api/account/verify-email`, { token })
+            .pipe(
+                tap(() => console.log('AccountService: Email verification request successful')),
+                catchError(error => {
+                    console.error('AccountService: Email verification failed:', error);
+                    return throwError(() => error.error?.message || 'Verification failed');
+                })
+            );
     }
 
-    // Forgot Password
     forgotPassword(email: string) {
         return this.http.post(`${environment.apiUrl}/api/account/forgot-password`, { email });
     }
 
-    // Validate Reset Token
     validateResetToken(token: string) {
         return this.http.post(`${environment.apiUrl}/api/account/validate-reset-token`, { token });
     }
 
-    // Reset Password
     resetPassword(token: string, password: string) {
         return this.http.post(`${environment.apiUrl}/api/account/reset-password`, {
             token,
@@ -122,7 +145,6 @@ export class AccountService {
         });
     }
 
-    // Refresh Token
     refreshToken() {
         return this.http.post<Account>(`${environment.apiUrl}/api/account/refresh-token`, {})
             .pipe(map((user) => {
@@ -131,16 +153,13 @@ export class AccountService {
             }));
     }
 
-    // Get User Profile
     getProfile() {
         return this.http.get<Account>(`${environment.apiUrl}/api/account/profile`);
     }
 
-    // Update User Profile
     updateProfile(params: any) {
         return this.http.put<Account>(`${environment.apiUrl}/api/account/profile`, params)
             .pipe(map(user => {
-                // update stored user if the logged in user updated their own record
                 if (user.id === this.accountValue?.id) {
                     user = { ...this.accountValue, ...user };
                     localStorage.setItem('user', JSON.stringify(user));
@@ -150,7 +169,6 @@ export class AccountService {
             }));
     }
 
-    // Change Password
     changePassword(oldPassword: string, newPassword: string) {
         return this.http.post(`${environment.apiUrl}/api/account/change-password`, {
             oldPassword,

@@ -8,6 +8,11 @@ export const routes: Routes = [
         canActivate: [authGuard]
     },
     {
+        path: 'home',
+        redirectTo: '',
+        pathMatch: 'full'
+    },
+    {
         path: 'account',
         loadChildren: () => import('./account/account.routes').then(m => m.ACCOUNT_ROUTES)
     },
@@ -24,11 +29,3 @@ export const routes: Routes = [
     // Catch all redirect to home
     { path: '**', redirectTo: '' }
 ];
-
-
-
-
-
-
-
-
