@@ -35,7 +35,10 @@ export class VerifyEmailComponent implements OnInit {
   ngOnInit() {
     const token = this.route.snapshot.queryParams['token'];
     
+    console.log('VerifyEmailComponent: Received token:', token);
+
     if (!token) {
+      console.error('VerifyEmailComponent: No token provided in URL');
       this.emailStatus = EmailStatus.Failed;
       return;
     }
@@ -44,13 +47,15 @@ export class VerifyEmailComponent implements OnInit {
       .pipe(first())
       .subscribe({
         next: () => {
+          console.log('VerifyEmailComponent: Email verification successful');
           this.emailStatus = EmailStatus.Success;
           this.alertService.success('Verification successful, you can now login', { keepAfterRouteChange: true });
           setTimeout(() => {
             this.router.navigate(['../login'], { relativeTo: this.route });
           }, 2000);
         },
-        error: () => {
+        error: (error) => {
+          console.error('VerifyEmailComponent: Verification failed:', error);
           this.emailStatus = EmailStatus.Failed;
           this.alertService.error('Verification failed. Please try again or use the forgot password option.');
         }

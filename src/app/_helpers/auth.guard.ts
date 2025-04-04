@@ -1,17 +1,24 @@
 import { inject } from '@angular/core';
-import { Router, type CanActivateFn } from '@angular/router';
+import { Router, CanActivateFn } from '@angular/router';
 import { AccountService } from '@app/_services';
 
 export const authGuard: CanActivateFn = (route, state) => {
     const router = inject(Router);
     const accountService = inject(AccountService);
+    
+    const account = accountService.accountValue;
+    console.log('AuthGuard: Checking authentication...', {
+        account: account,
+        hasJwtToken: !!account?.jwtToken,
+        targetUrl: state.url
+    });
 
-    if (accountService.accountValue) {
-        // logged in so return true
+    if (account?.jwtToken) {
+        console.log('AuthGuard: User is authenticated, allowing access');
         return true;
     }
 
-    // not logged in so redirect to login page with the return url
-    router.navigate(['/account/login'], { queryParams: { returnUrl: state.url } });
+    console.log('AuthGuard: User is not authenticated, redirecting to login');
+    router.navigate(['/account/login'], { queryParams: { returnUrl: state.url }});
     return false;
 };

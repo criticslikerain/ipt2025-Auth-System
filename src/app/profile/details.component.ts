@@ -34,7 +34,7 @@ export class DetailsComponent implements OnInit {
         // Load user details
         const userId = this.accountService.accountValue?.id;
         if (userId) {
-            this.accountService.getById(userId)
+            this.accountService.getById(userId.toString())
                 .pipe(first())
                 .subscribe(account => {
                     this.form.patchValue(account);

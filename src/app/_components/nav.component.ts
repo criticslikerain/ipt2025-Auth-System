@@ -2,33 +2,31 @@ import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { AccountService } from '@app/_services';
-import { LogoutDialogComponent } from './logout-dialog.component';
 
 @Component({
     selector: 'app-nav',
     standalone: true,
-    imports: [CommonModule, RouterModule, LogoutDialogComponent],
+    imports: [
+        CommonModule,
+        RouterModule
+    ],
     template: `
-        <ng-container *ngIf="!(accountService.logoutState | async)">
-            <nav class="navbar">
-                <div class="nav-brand">
-                    <a routerLink="/">Auth System</a>
-                </div>
-                <div class="nav-items">
-                    <ng-container *ngIf="!accountService.accountValue">
-                        <a routerLink="/account/login" routerLinkActive="active">Login</a>
-                        <a routerLink="/account/register" routerLinkActive="active">Register</a>
-                    </ng-container>
-                    <ng-container *ngIf="accountService.accountValue">
-                        <a routerLink="/profile" routerLinkActive="active">Profile</a>
-                        <a routerLink="/admin" routerLinkActive="active" *ngIf="isAdmin">Admin</a>
-                        <a href="javascript:void(0)" (click)="logout()">Logout</a>
-                    </ng-container>
-                </div>
-            </nav>
-        </ng-container>
-        
-        <app-logout-dialog *ngIf="(accountService.logoutState | async)"></app-logout-dialog>
+        <nav class="navbar">
+            <div class="nav-brand">
+                <a routerLink="/">Auth System</a>
+            </div>
+            <div class="nav-items">
+                <ng-container *ngIf="!accountService.accountValue">
+                    <a routerLink="/account/login" routerLinkActive="active">Login</a>
+                    <a routerLink="/account/register" routerLinkActive="active">Register</a>
+                </ng-container>
+                <ng-container *ngIf="accountService.accountValue">
+                    <a routerLink="/profile" routerLinkActive="active">Profile</a>
+                    <a routerLink="/admin" routerLinkActive="active" *ngIf="isAdmin">Admin</a>
+                    <a href="javascript:void(0)" (click)="logout()">Logout</a>
+                </ng-container>
+            </div>
+        </nav>
     `,
     styles: [`
         .navbar {

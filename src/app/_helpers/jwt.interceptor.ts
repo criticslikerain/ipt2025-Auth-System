@@ -5,14 +5,14 @@ import { environment } from '@environments/environment';
 
 export const jwtInterceptor: HttpInterceptorFn = (req, next) => {
     const accountService = inject(AccountService);
-    const user = accountService.accountValue;
-    const isLoggedIn = user?.jwtToken;
+    const account = accountService.accountValue;
     const isApiUrl = req.url.startsWith(environment.apiUrl);
     
-    if (isLoggedIn && isApiUrl) {
+    if (account?.jwtToken && isApiUrl) {
+        console.log('Adding auth header for:', req.url);
         req = req.clone({
             setHeaders: {
-                Authorization: `Bearer ${user.jwtToken}`
+                Authorization: `Bearer ${account.jwtToken}`
             }
         });
     }

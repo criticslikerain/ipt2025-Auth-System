@@ -8,11 +8,19 @@ export const errorInterceptor: HttpInterceptorFn = (req, next) => {
     
     return next(req).pipe(
         catchError(err => {
+            console.error('ErrorInterceptor: HTTP Error:', {
+                status: err.status,
+                message: err.error?.message || err.statusText,
+                url: req.url
+            });
+
             if ([401, 403].includes(err.status) && accountService.accountValue) {
+                console.log('ErrorInterceptor: Authentication error, logging out');
                 accountService.logout();
             }
+
             const error = err.error?.message || err.statusText;
             return throwError(() => error);
         })
     );
-}
+};
