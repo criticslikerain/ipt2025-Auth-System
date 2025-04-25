@@ -21,12 +21,10 @@
                         <div class="user-details">
                             <p><strong>Email:</strong> {{user.email}}</p>
                             <p><strong>Role:</strong> {{user.role}}</p>
-                            <p><strong>Account Created:</strong> {{user.created | date:'medium'}}</p>
+                            <p *ngIf="user.created">
+                                <strong>Account Created:</strong> {{user.created | date:'medium'}}
+                            </p>
                         </div>
-                    </div>
-
-                    <div *ngIf="!loading && !user" class="alert alert-warning">
-                        <p>Please log in to access your account details.</p>
                     </div>
                 </div>
             </div>

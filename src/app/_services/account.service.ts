@@ -19,6 +19,16 @@ export class AccountService {
         this.account = this.accountSubject.asObservable();
     }
 
+    getAll(): Observable<Account[]> {
+        return this.http.get<Account[]>(`${environment.apiUrl}/api/accounts`)
+            .pipe(
+                catchError(error => {
+                    console.error('Error fetching accounts:', error);
+                    return throwError(() => error);
+                })
+            );
+    }
+
     private getUserFromStorage(): Account | null {
         const storedUser = localStorage.getItem('user');
         if (storedUser) {
@@ -179,5 +189,9 @@ export class AccountService {
     resendVerificationEmail(email: string) {
         return this.http.post<any>(`${environment.apiUrl}/api/account/resend-verification-email`, { email })
             .pipe(map(() => true));
+    }
+
+    create(params: any) {
+        return this.http.post<Account>(`${environment.apiUrl}/api/accounts`, params);
     }
 }

@@ -1,14 +1,20 @@
 import { Component, OnInit } from '@angular/core';
 import { Router, ActivatedRoute } from '@angular/router';
-import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { FormBuilder, FormGroup, Validators, ReactiveFormsModule, FormsModule } from '@angular/forms';
 import { first } from 'rxjs/operators';
+import { CommonModule } from '@angular/common';
 
 import { AccountService, AlertService } from '@app/_services';
-import { MustMatch } from '@app/_helpers';
 
 @Component({
+    selector: 'app-add-edit',
     templateUrl: './add-edit.component.html',
-    styleUrls: ['./add-edit.component.css']
+    standalone: true, // Make the component standalone
+    imports: [
+        CommonModule,        // For ngIf, ngFor, etc.
+        ReactiveFormsModule, // For formGroup, formControl
+        FormsModule,        // For ngModel
+    ]
 })
 export class AddEditComponent implements OnInit {
     form!: FormGroup;
@@ -16,6 +22,10 @@ export class AddEditComponent implements OnInit {
     isAddMode!: boolean;
     loading = false;
     submitted = false;
+    roles = [
+        { value: 'User', label: 'User' },
+        { value: 'Admin', label: 'Admin' }
+    ];
 
     constructor(
         private formBuilder: FormBuilder,
@@ -28,43 +38,49 @@ export class AddEditComponent implements OnInit {
     ngOnInit() {
         this.id = this.route.snapshot.params['id'];
         this.isAddMode = !this.id;
-        
-        // password not required in edit mode
-        const passwordValidators = [Validators.minLength(6)];
+
+        const passwordValidators = [
+            Validators.minLength(6),
+            Validators.pattern(/^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{6,}$/)
+        ];
         if (this.isAddMode) {
             passwordValidators.push(Validators.required);
         }
 
         this.form = this.formBuilder.group({
+            firstName: ['', Validators.required],
+            lastName: ['', Validators.required],
             email: ['', [Validators.required, Validators.email]],
             role: ['', Validators.required],
             password: ['', passwordValidators],
             confirmPassword: ['']
         }, {
-            validators: MustMatch('password', 'confirmPassword')
+            validator: this.passwordMatchValidator
         });
 
         if (!this.isAddMode) {
             this.accountService.getById(this.id!)
                 .pipe(first())
-                .subscribe(x => {
-                    this.form.patchValue(x);
-                });
+                .subscribe(account => this.form.patchValue(account));
         }
     }
 
-    // convenience getter for easy access to form fields
-    get f() { 
-        return this.form.controls; 
+    private passwordMatchValidator(g: FormGroup) {
+        const password = g.get('password');
+        const confirmPassword = g.get('confirmPassword');
+        if (password?.value && confirmPassword?.value && password.value !== confirmPassword.value) {
+            confirmPassword.setErrors({ 'passwordMismatch': true });
+        } else {
+            confirmPassword?.setErrors(null);
+        }
     }
+
+    get f() { return this.form.controls; }
 
     onSubmit() {
         this.submitted = true;
-
-        // reset alerts on submit
         this.alertService.clear();
 
-        // stop here if form is invalid
         if (this.form.invalid) {
             return;
         }
@@ -82,7 +98,10 @@ export class AddEditComponent implements OnInit {
             .pipe(first())
             .subscribe({
                 next: () => {
-                    this.alertService.success('Account created successfully', { keepAfterRouteChange: true });
+                    this.alertService.success('Account created successfully', { 
+                        keepAfterRouteChange: true,
+                        autoClose: true
+                    });
                     this.router.navigate(['../'], { relativeTo: this.route });
                 },
                 error: error => {
@@ -97,7 +116,10 @@ export class AddEditComponent implements OnInit {
             .pipe(first())
             .subscribe({
                 next: () => {
-                    this.alertService.success('Account updated successfully', { keepAfterRouteChange: true });
+                    this.alertService.success('Account updated successfully', { 
+                        keepAfterRouteChange: true,
+                        autoClose: true
+                    });
                     this.router.navigate(['../../'], { relativeTo: this.route });
                 },
                 error: error => {

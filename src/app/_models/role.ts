@@ -1,7 +1,9 @@
-export enum Role {
-    User = 'User',
-    Admin = 'Admin'
-}
+export const Role = {
+    User: 'User',
+    Admin: 'Admin'
+} as const;
+
+export type Role = typeof Role[keyof typeof Role];
 
 export interface RolePermissions {
     [Role.User]: Permission[];
