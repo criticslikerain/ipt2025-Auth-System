@@ -4,14 +4,25 @@ export enum Role {
 }
 
 export interface Account {
-    id: string;
-    title: string;
-    firstName: string;
-    lastName: string;
+    id?: string;
+    title?: string;
+    firstName?: string;
+    lastName?: string;
     email: string;
     role: string;
-    created: Date;
     jwtToken?: string;
+    created?: Date;
+    updated?: Date;
+    isVerified?: boolean;
+    password?: string;
+}
+
+export interface AccountWithDelete extends Account {
+    isDeleting: boolean;
+}
+
+export interface AccountResponse extends Account {
+    token: string;
 }
 
 export interface RegisterRequest {

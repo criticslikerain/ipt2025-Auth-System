@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpRequest, HttpResponse, HttpHandler, HttpEvent, HttpInterceptor, HTTP_INTERCEPTORS } from '@angular/common/http';
 import { Observable, of, throwError } from 'rxjs';
 import { delay, materialize, dematerialize } from 'rxjs/operators';
+import { Role } from '@app/_models/role';
 
 // array in local storage for registered users
 const usersKey = 'users';
@@ -29,15 +30,29 @@ export class FakeBackendInterceptor implements HttpInterceptor {
         function register() {
             const user = body;
 
+            // Log the registration attempt
+            console.log('Fake backend: Registration attempt with data:', user);
+
+            // Get users from localStorage
+            const users = JSON.parse(localStorage.getItem(usersKey) || '[]');
+
+            // Check if email already exists
             if (users.find((x: any) => x.email === user.email)) {
+                console.log('Fake backend: Email already registered');
                 return error(`Email ${user.email} is already registered`);
             }
 
-            // assign user id and a few other properties then save
+            // Assign user id and role
             user.id = users.length ? Math.max(...users.map((x: any) => x.id)) + 1 : 1;
-            user.role = users.length === 0 ? 'Admin' : 'User';
+            user.role = users.length === 0 ? Role.Admin : Role.User;
+            user.created = new Date().toISOString();
+            user.isVerified = false;
+
+            // Add user to array and save in localStorage
             users.push(user);
             localStorage.setItem(usersKey, JSON.stringify(users));
+
+            console.log('Fake backend: Registration successful');
             return ok();
         }
 
