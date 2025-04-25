@@ -2,8 +2,7 @@ import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
 import { LayoutComponent } from './layout.component';
 import { DashboardComponent } from './dashboard.component';
-import { StatusManagementComponent } from './status/status-management.component';
-import { StatusDetailsComponent } from './status/status-details.component';
+import { UserManagementComponent } from './user-management.component';
 import { SettingsComponent } from './settings.component';
 import { authGuard } from '../_helpers/auth.guard';
 import { adminGuard } from '../_helpers/admin.guard';
@@ -21,34 +20,18 @@ const routes: Routes = [
             },
             {
                 path: 'dashboard',
-                component: DashboardComponent
+                component: DashboardComponent,
+                data: { title: 'Admin Dashboard' }
             },
             {
-                path: 'accounts',
-                loadChildren: () => import('./accounts/account-routing.module')
-                    .then(m => m.AccountRoutingModule)
-            },
-            {
-                path: 'employees',
-                loadChildren: () => import('./employees/employee-routing.module')
-                    .then(m => m.EmployeeRoutingModule)
-            },
-            {
-                path: 'status',
-                children: [
-                    {
-                        path: '',
-                        component: StatusManagementComponent
-                    },
-                    {
-                        path: ':id',
-                        component: StatusDetailsComponent
-                    }
-                ]
+                path: 'users',
+                component: UserManagementComponent,
+                data: { title: 'User Management' }
             },
             {
                 path: 'settings',
-                component: SettingsComponent
+                component: SettingsComponent,
+                data: { title: 'Admin Settings' }
             }
         ]
     }
@@ -58,4 +41,5 @@ const routes: Routes = [
     imports: [RouterModule.forChild(routes)],
     exports: [RouterModule]
 })
+
 export class AdminRoutingModule {}

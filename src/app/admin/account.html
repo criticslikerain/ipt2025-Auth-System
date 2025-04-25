@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Accounts</title>
+  <link rel="stylesheet" href="account.css" />
+</head>
+<body>
+
+  <div class="container"> 
+    <h2>Accounts</h2>
+    <p>All accounts from secure (admin only) api end point:</p>
+    <button class="btn-create">Create Account</button>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Email</th>
+          <th>Role</th>
+          <th></th> <!-- For buttons -->
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Mr Admin Istrator</td>
+          <td>admin@test.com</td>
+          <td>Admin</td>
+          <td class="actions">
+            <button class="btn-edit">Edit</button>
+            <button class="btn-delete">Delete</button>
+          </td>
+        </tr>
+        <tr>
+          <td>Ms User Test</td>
+          <td>user@test.com</td>
+          <td>User</td>
+          <td class="actions">
+            <button class="btn-edit">Edit</button>
+            <button class="btn-delete">Delete</button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+</body>
+</html>

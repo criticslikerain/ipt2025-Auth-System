@@ -1,23 +1,19 @@
-import { Component, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { RouterModule } from '@angular/router';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { first, takeUntil } from 'rxjs/operators';
 import { Subject } from 'rxjs';
+
 import { AccountService, AlertService } from '@app/_services';
-import { Account, AccountWithDelete } from '@app/_models/account';
-import { HttpErrorResponse } from '@angular/common/http';
+import { Account } from '@app/_models';
+
+interface AccountWithDelete extends Account {
+    isDeleting?: boolean;
+}
 
 @Component({
-    selector: 'app-list',
     templateUrl: './list.component.html',
-    styleUrls: ['./list.component.css'],
-    standalone: true,
-    imports: [
-        CommonModule,
-        RouterModule
-    ]
+    styleUrls: ['./list.component.css']
 })
-export class ListComponent implements OnInit {
+export class ListComponent implements OnInit, OnDestroy {
     accounts: AccountWithDelete[] = [];
     loading = false;
     private destroy$ = new Subject<void>();
@@ -47,13 +43,14 @@ export class ListComponent implements OnInit {
             )
             .subscribe({
                 next: (accounts) => {
+                    // Initialize isDeleting property for each account
                     this.accounts = accounts.map(account => ({
                         ...account,
                         isDeleting: false
                     }));
                     this.loading = false;
                 },
-                error: (error: HttpErrorResponse) => {
+                error: (error) => {
                     this.alertService.error('Error loading accounts. Please try again.');
                     this.loading = false;
                     console.error('Error loading accounts:', error);
@@ -95,7 +92,7 @@ export class ListComponent implements OnInit {
                         this.accounts = this.accounts.filter(x => x.id !== id);
                         this.alertService.success('Account deleted successfully');
                     },
-                    error: (error: HttpErrorResponse) => {
+                    error: (error) => {
                         account.isDeleting = false;
                         this.alertService.error('Error deleting account. Please try again.');
                         console.error('Error deleting account:', error);
