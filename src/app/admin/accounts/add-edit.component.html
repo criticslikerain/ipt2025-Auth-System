@@ -1,104 +1,114 @@
-<!DOCTYPE html>
-<html lang="en">
 
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Account Management</title>
-  <link rel="stylesheet" href="add-edit.component.css" />
-</head>
 
-<form [formGroup]="form" (ngSubmit)="onSubmit()">
-    <div class="section">
-        <h2>{{ isAddMode ? 'Create Account' : 'Edit Account' }}</h2>
-
-        <div class="form-group">
-            <label for="email">Email</label>
-            <input 
-                type="email" 
-                id="email"
-                formControlName="email" 
-                class="form-control short-input" 
-                placeholder="Enter email address"
-                [ngClass]="{ 'is-invalid': submitted && f['email'].errors }" 
-                autocomplete="email"
-            />
-            <div *ngIf="submitted && f['email'].errors" class="invalid-feedback">
-                <div *ngIf="f['email'].errors?.['required']">Email is required</div>
-                <div *ngIf="f['email'].errors?.['email']">Email must be a valid email address</div>
+        <div class="card-header">
+            <div class="header-content">
+                <h1>{{ isAddMode ? 'Create Account' : 'Edit Account' }}</h1>
+                <p>{{ isAddMode ? 'Add a new user account to the system' : 'Modify existing user account details' }}</p>
             </div>
         </div>
+        
+        <div class="card-body">
+            <form [formGroup]="form" (ngSubmit)="onSubmit()">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Title</label>
+                        <select formControlName="title" class="form-control" [ngClass]="{ 'is-invalid': submitted && f['title'].errors }">
+                            <option value="">Select title</option>
+                            <option value="Mr">Mr</option>
+                            <option value="Mrs">Mrs</option>
+                            <option value="Miss">Miss</option>
+                            <option value="Ms">Ms</option>
+                        </select>
+                        <div *ngIf="submitted && f['title'].errors" class="invalid-feedback">
+                            <div *ngIf="f['title'].errors['required']">Title is required</div>
+                        </div>
+                    </div>
 
-        <div class="form-group">
-            <label for="role">Role</label>
-            <select 
-                id="role"
-                formControlName="role" 
-                class="form-control short-select" 
-                [ngClass]="{ 'is-invalid': submitted && f['role'].errors }"
-            >
-                <option value="" disabled selected>Select a role</option>
-                <option value="User">User</option>
-                <option value="Admin">Admin</option>
-            </select>
-            <div *ngIf="submitted && f['role'].errors" class="invalid-feedback">
-                <div *ngIf="f['role'].errors?.['required']">Role is required</div>
-            </div>
-        </div>
+                    <div class="form-group">
+                        <label>First Name</label>
+                        <input type="text" formControlName="firstName" class="form-control" 
+                               [ngClass]="{ 'is-invalid': submitted && f['firstName'].errors }" />
+                        <div *ngIf="submitted && f['firstName'].errors" class="invalid-feedback">
+                            <div *ngIf="f['firstName'].errors['required']">First Name is required</div>
+                        </div>
+                    </div>
 
-        <div class="form-group">
-            <label for="password">
-                Password
-                <span *ngIf="!isAddMode" class="optional-text">(Leave blank to keep the same password)</span>
-            </label>
-            <input 
-                type="password" 
-                id="password"
-                formControlName="password" 
-                class="form-control short-input" 
-                placeholder="Enter password"
-                [ngClass]="{ 'is-invalid': submitted && f['password'].errors }" 
-                autocomplete="new-password"
-            />
-            <div *ngIf="submitted && f['password'].errors" class="invalid-feedback">
-                <div *ngIf="f['password'].errors?.['required']">Password is required</div>
-                <div *ngIf="f['password'].errors?.['minlength']">Password must be at least 6 characters</div>
-            </div>
-        </div>
+                    <div class="form-group">
+                        <label>Last Name</label>
+                        <input type="text" formControlName="lastName" class="form-control" 
+                               [ngClass]="{ 'is-invalid': submitted && f['lastName'].errors }" />
+                        <div *ngIf="submitted && f['lastName'].errors" class="invalid-feedback">
+                            <div *ngIf="f['lastName'].errors['required']">Last Name is required</div>
+                        </div>
+                    </div>
+                </div>
 
-        <div class="form-group">
-            <label for="confirmPassword">Confirm Password</label>
-            <input 
-                type="password" 
-                id="confirmPassword"
-                formControlName="confirmPassword" 
-                class="form-control short-input" 
-                placeholder="Confirm password"
-                [ngClass]="{ 'is-invalid': submitted && f['confirmPassword'].errors }" 
-                autocomplete="new-password"
-            />
-            <div *ngIf="submitted && f['confirmPassword'].errors" class="invalid-feedback">
-                <div *ngIf="f['confirmPassword'].errors?.['required']">Confirm Password is required</div>
-                <div *ngIf="f['confirmPassword'].errors?.['mustMatch']">Passwords must match</div>
-            </div>
-        </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Email</label>
+                        <input type="email" formControlName="email" class="form-control" 
+                               [ngClass]="{ 'is-invalid': submitted && f['email'].errors }" />
+                        <div *ngIf="submitted && f['email'].errors" class="invalid-feedback">
+                            <div *ngIf="f['email'].errors['required']">Email is required</div>
+                            <div *ngIf="f['email'].errors['email']">Email must be a valid email address</div>
+                        </div>
+                    </div>
 
-        <div class="form-actions">
-            <button 
-                type="submit" 
-                [disabled]="loading" 
-                class="btn btn-primary"
-            >
-                <span *ngIf="loading" class="spinner-border spinner-border-sm me-1"></span>
-                {{ isAddMode ? 'Create Account' : 'Save Changes' }}
-            </button>
-            <a 
-                routerLink="/admin/accounts" 
-                class="btn btn-secondary"
-            >
-                Cancel
-            </a>
+                    <div class="form-group">
+                        <label>Role</label>
+                        <select formControlName="role" class="form-control" 
+                                [ngClass]="{ 'is-invalid': submitted && f['role'].errors }">
+                            <option value="">Select role</option>
+                            <option value="User">User</option>
+                            <option value="Admin">Admin</option>
+                        </select>
+                        <div *ngIf="submitted && f['role'].errors" class="invalid-feedback">
+                            <div *ngIf="f['role'].errors['required']">Role is required</div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Status</label>
+                        <select formControlName="status" class="form-control">
+                            <option value="Active">Active</option>
+                            <option value="Inactive">Inactive</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-row" [ngClass]="{ 'password-section': !isAddMode }">
+                    <div class="form-group">
+                        <label>
+                            Password
+                            <span *ngIf="!isAddMode" class="optional-label">(Leave blank to keep the same password)</span>
+                        </label>
+                        <input type="password" formControlName="password" class="form-control"
+                               [ngClass]="{ 'is-invalid': submitted && f['password'].errors }" />
+                        <div *ngIf="submitted && f['password'].errors" class="invalid-feedback">
+                            <div *ngIf="f['password'].errors['required']">Password is required</div>
+                            <div *ngIf="f['password'].errors['minlength']">Password must be at least 6 characters</div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Confirm Password</label>
+                        <input type="password" formControlName="confirmPassword" class="form-control" 
+                               [ngClass]="{ 'is-invalid': submitted && f['confirmPassword'].errors }" />
+                        <div *ngIf="submitted && f['confirmPassword'].errors" class="invalid-feedback">
+                            <div *ngIf="f['confirmPassword'].errors['required']">Confirm Password is required</div>
+                            <div *ngIf="f['confirmPassword'].errors['matching']">Passwords must match</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-buttons">
+                    <button [disabled]="loading" class="btn-primary">
+                        <span *ngIf="loading" class="spinner"></span>
+                        <span>{{ isAddMode ? 'Create Account' : 'Save Changes' }}</span>
+                    </button>
+                    <button type="button" (click)="onCancel()" class="btn-secondary">
+                        Cancel
+                    </button>
+                </div>
+            </form>
         </div>
-    </div>
-  
-    

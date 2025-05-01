@@ -1,58 +1,48 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Account Management</title>
-  <link rel="stylesheet" href="list.component.css" />
-</head>
-<div class="account-list-container">
-    <header>
-        <div class="header-content">
-            <h1>Account Management</h1>
-            <p>Manage all accounts from a secure (admin only) API endpoint.</p>
-        </div>
-        <a routerLink="add" class="btn-create">+ Create Account</a>
-    </header>
 
-    <div class="table-responsive">
-        <table class="account-table" *ngIf="!loading && accounts?.length">
-            <thead>
-                <tr>
-                    <th>Name</th>
-                    <th>Email</th>
-                    <th>Role</th>
-                    <th>Actions</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr *ngFor="let account of accounts" class="account-row">
-                    <td>{{account.title}} {{account.firstName}} {{account.lastName}}</td>
-                    <td>{{account.email}}</td>
-                    <td>{{account.role}}</td>
-                    <td class="actions">
-                        <a routerLink="edit/{{account.id}}" class="btn-edit" *ngIf="account.id">Edit</a>
-                        <button 
-                            (click)="deleteAccount(account.id!)" 
-                            class="btn-delete" 
-                            [disabled]="account.isDeleting || !account.id"
-                        >
-                            <span *ngIf="account.isDeleting" class="spinner-border spinner-border-sm"></span>
-                            <span *ngIf="!account.isDeleting">Delete</span>
-                        </button>
-                    </td>
-                </tr>
-            </tbody>
-        </table>
-
-        <div *ngIf="!loading && !accounts?.length" class="no-records">
-            No accounts found
+        <div class="card-header">
+            <div class="header-content">
+                <h1>Accounts Management</h1>
+                <p>Manage all accounts from a secure (admin only) API endpoint.</p>
+            </div>
+            <a routerLink="add" class="btn-primary">+ Create Account</a>
         </div>
+        
+        <div class="card-body">
+            <div *ngIf="loading" class="text-center p-3">
+                <div class="spinner"></div>
+            </div>
 
-        <div *ngIf="loading" class="loading">
-            <span class="spinner-border spinner-border-lg"></span>
-            Loading accounts...
+            <div *ngIf="!loading && (!accounts || accounts.length === 0)" class="text-center p-3">
+                <p>No accounts found</p>
+            </div>
+
+            <div class="table-responsive" *ngIf="!loading && accounts?.length">
+                <table class="account-table">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Email</th>
+                            <th>Role</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr *ngFor="let account of accounts">
+                            <td>{{account.title}} {{account.firstName}} {{account.lastName}}</td>
+                            <td>{{account.email}}</td>
+                            <td>{{account.role}}</td>
+                            <td>
+                                <span class="status-badge" [ngClass]="account.status === 'Active' ? 'active' : 'inactive'">
+                                    {{account.status}}
+                                </span>
+                            </td>
+                            <td class="actions">
+                                <a routerLink="edit/{{account.id}}" class="btn btn-edit">Edit</a>
+                              
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
         </div>
-    </div>
-</div>
-  

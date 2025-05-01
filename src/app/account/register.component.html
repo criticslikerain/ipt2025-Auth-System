@@ -1,95 +1,129 @@
 
 
+    <h4 class="card-header">Register</h4>
+    <div class="card-body">
         <form [formGroup]="form" (ngSubmit)="onSubmit()">
-            <div *ngIf="registrationSuccess" class="registration-success">
-                Success! Check Email for Verification.
+            <!-- First User Success Message -->
+            <div *ngIf="isFirstUserRegistered" class="alert alert-success">
+                <h4>Admin Registration Successful!</h4>
+                <p>You can now login with the following privileges:</p>
+                <ul>
+                    <li><strong>Role:</strong> Admin</li>
+                    <li><strong>Status:</strong> Active</li>
+                    <li><strong>Verified:</strong> Yes</li>
+                </ul>
+                <p>You can proceed to <a routerLink="../login" [queryParams]="{ email: f['email'].value }">login</a> immediately.</p>
             </div>
-            <div *ngIf="registrationError" class="registration-error">
+
+            <!-- Regular User Verification Message -->
+            <div *ngIf="registrationSuccess && !isFirstUserRegistered" class="alert alert-info">
+                <h4>Verification Email</h4>
+                <p>Thanks for registering!</p>
+                <p>Please click the link below to verify your email address:</p>
+                <a [href]="verificationMessage" class="verification-link">{{verificationMessage}}</a>
+            </div>
+
+            <!-- Email Already Registered Error -->
+            <div *ngIf="registrationError && registrationError.includes('already registered')" class="registration-error">
+                <p>The email address <strong>{{f['email'].value}}</strong> is already registered.</p>
+                <div class="error-actions">
+                    <a routerLink="../login" class="action-link">Login</a>
+                    <span class="error-separator">or</span>
+                    <a routerLink="../forgot-password" class="action-link">Reset Password</a>
+                </div>
+            </div>
+
+            <!-- Generic Error Message -->
+            <div *ngIf="registrationError && !registrationError.includes('already registered')" class="registration-error">
                 {{ registrationError }}
             </div>
 
-            <div class="card-body">
-                <app-alert></app-alert>
-                <div class="form-group">
-                    <label class="form-label">Title</label>
-                    <select formControlName="title" class="form-control" [ngClass]="{ 'invalid': submitted && f['title'].errors }">
-                        <option value="">Select title</option>
-                        <option value="Mr">Mr</option>
-                        <option value="Mrs">Mrs</option>
-                        <option value="Miss">Miss</option>
-                        <option value="Ms">Ms</option>
-                    </select>
-                    <div class="error" *ngIf="submitted && f['title'].errors">
-                        Title is required
-                    </div>
+            <div class="form-group">
+                <label class="form-label">Title</label>
+                <select formControlName="title" class="form-control" [ngClass]="{ 'invalid': submitted && f['title'].errors }">
+                    <option value="">Select title</option>
+                    <option value="Mr">Mr</option>
+                    <option value="Mrs">Mrs</option>
+                    <option value="Miss">Miss</option>
+                    <option value="Ms">Ms</option>
+                </select>
+                <div class="error" *ngIf="submitted && f['title'].errors">
+                    Title is required
                 </div>
+            </div>
 
-                <div class="form-row">
-                    <div class="form-group">
-                        <label class="form-label">First Name</label>
-                        <input type="text" formControlName="firstName" class="form-control" [ngClass]="{ 'invalid': submitted && f['firstName'].errors }" />
-                        <div class="error" *ngIf="submitted && f['firstName'].errors">
-                            First Name is required
-                        </div>
-                    </div>
-
-                    <div class="form-group">
-                        <label class="form-label">Last Name</label>
-                        <input type="text" formControlName="lastName" class="form-control" [ngClass]="{ 'invalid': submitted && f['lastName'].errors }" />
-                        <div class="error" *ngIf="submitted && f['lastName'].errors">
-                            Last Name is required
-                        </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label">First Name</label>
+                    <input type="text" formControlName="firstName" class="form-control" 
+                           [ngClass]="{ 'invalid': submitted && f['firstName'].errors }" />
+                    <div class="error" *ngIf="submitted && f['firstName'].errors">
+                        First Name is required
                     </div>
                 </div>
 
                 <div class="form-group">
-                    <label class="form-label">Email</label>
-                    <input type="email" formControlName="email" class="form-control" [ngClass]="{ 'invalid': submitted && f['email'].errors }" />
-                    <div class="error" *ngIf="submitted && f['email'].errors">
-                        <div *ngIf="f['email'].errors['required']">Email is required</div>
-                        <div *ngIf="f['email'].errors['email']">Email must be valid</div>
+                    <label class="form-label">Last Name</label>
+                    <input type="text" formControlName="lastName" class="form-control" 
+                           [ngClass]="{ 'invalid': submitted && f['lastName'].errors }" />
+                    <div class="error" *ngIf="submitted && f['lastName'].errors">
+                        Last Name is required
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Email</label>
+                <input type="email" formControlName="email" class="form-control" 
+                       [ngClass]="{ 'invalid': submitted && f['email'].errors }" />
+                <div class="error" *ngIf="submitted && f['email'].errors">
+                    <div *ngIf="f['email'].errors['required']">Email is required</div>
+                    <div *ngIf="f['email'].errors['email']">Email must be valid</div>
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label">Password</label>
+                    <input type="password" formControlName="password" class="form-control" 
+                           [ngClass]="{ 'invalid': submitted && f['password'].errors }" />
+                    <div class="error" *ngIf="submitted && f['password'].errors">
+                        <div *ngIf="f['password'].errors['required']">Password is required</div>
+                        <div *ngIf="f['password'].errors['minlength']">Password must be at least 6 characters</div>
                     </div>
                 </div>
 
-                <div class="form-row">
-                    <div class="form-group">
-                        <label class="form-label">Password</label>
-                        <input type="password" formControlName="password" class="form-control" [ngClass]="{ 'invalid': submitted && f['password'].errors }" />
-                        <div class="error" *ngIf="submitted && f['password'].errors">
-                            <div *ngIf="f['password'].errors['required']">Password is required</div>
-                            <div *ngIf="f['password'].errors['minlength']">Password must be at least 6 characters</div>
-                        </div>
-                    </div>
-
-                    <div class="form-group">
-                        <label class="form-label">Confirm Password</label>
-                        <input type="password" formControlName="confirmPassword" class="form-control" [ngClass]="{ 'invalid': submitted && f['confirmPassword'].errors }" />
-                        <div class="error" *ngIf="submitted && f['confirmPassword'].errors">
-                            <div *ngIf="f['confirmPassword'].errors['required']">Confirm Password is required</div>
-                            <div *ngIf="f['confirmPassword'].errors['mustMatch']">Passwords must match</div>
-                        </div>
+                <div class="form-group">
+                    <label class="form-label">Confirm Password</label>
+                    <input type="password" formControlName="confirmPassword" class="form-control" 
+                           [ngClass]="{ 'invalid': submitted && f['confirmPassword'].errors }" />
+                    <div class="error" *ngIf="submitted && f['confirmPassword'].errors">
+                        <div *ngIf="f['confirmPassword'].errors?.['required']">Confirm Password is required</div>
+                        <div *ngIf="f['confirmPassword'].errors?.['mustMatch']">Passwords must match</div>
                     </div>
                 </div>
+            </div>
 
-                <div class="form-group accept-terms">
-                    <label class="checkbox-container">
-                        <input type="checkbox" formControlName="acceptTerms" [ngClass]="{ 'invalid': submitted && f['acceptTerms'].errors }" />
-                        <span class="checkmark"></span>
-                        Accept Terms & Conditions
-                    </label>
-                    <div class="error" *ngIf="submitted && f['acceptTerms'].errors">
-                        Accept Terms is required
-                    </div>
+            <div class="form-group accept-terms">
+                <label class="checkbox-container">
+                    <input type="checkbox" formControlName="acceptTerms" 
+                           [ngClass]="{ 'invalid': submitted && f['acceptTerms'].errors }" />
+                    <span class="checkmark"></span>
+                    Accept Terms & Conditions
+                </label>
+                <div class="error" *ngIf="submitted && f['acceptTerms'].errors">
+                    Accept Terms is required
                 </div>
+            </div>
 
-                <button class="btn" type="submit" [disabled]="loading">
+            <div class="form-group">
+                <button [disabled]="loading" class="btn btn-primary">
                     <span *ngIf="loading" class="spinner"></span>
                     Register
                 </button>
-
-                <div class="links">
-                    <a routerLink="../login">← Back to Login</a>
+                <div class="cancel-container">
+                    <a routerLink="../login" class="cancel-link">Cancel</a>
                 </div>
             </div>
         </form>
- 
+    </div>

@@ -6,20 +6,19 @@ import { existsSync } from 'fs';
 import { renderApplication } from '@angular/platform-server';
 import bootstrap from './src/main.server';
 
-// Complete mock localStorage implementation for SSR
-const mockLocalStorage: Storage = {
-  length: 0,
-  clear: () => {},
-  getItem: () => null,
-  key: () => null,
-  removeItem: () => {},
-  setItem: () => {},
-  [Symbol.iterator]: function* () { yield* []; }
-};
+// Comment out or remove any code that clears localStorage
+// const mockLocalStorage: Storage = {
+//   length: 0,
+//   clear: () => {},
+//   getItem: () => null,
+//   key: () => null,
+//   removeItem: () => {},
+//   setItem: () => {},
+//   [Symbol.iterator]: function* () { yield* []; }
+// };
 
-// Add to global scope
-(global as any).localStorage = mockLocalStorage;
-(global as any).window = { localStorage: mockLocalStorage };
+// (global as any).localStorage = mockLocalStorage;
+// (global as any).window = { localStorage: mockLocalStorage };
 
 export function app(): express.Express {
   const server = express();

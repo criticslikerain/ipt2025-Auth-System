@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
+import { UntypedFormBuilder, UntypedFormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { Router, ActivatedRoute, RouterModule } from '@angular/router';
-import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { first, finalize } from 'rxjs/operators';
 import { AccountService, AlertService } from '@app/_services';
 import { CommonModule } from '@angular/common';
@@ -17,12 +17,12 @@ enum ResetStatus {
     standalone: true,
     imports: [
         CommonModule,
-        ReactiveFormsModule,
-        RouterModule
+        RouterModule,
+        ReactiveFormsModule
     ]
 })
 export class ForgotPasswordComponent implements OnInit {
-    form!: FormGroup;
+    form!: UntypedFormGroup;
     loading = false;
     submitted = false;
     resetStatus = ResetStatus.Ready;
@@ -30,7 +30,7 @@ export class ForgotPasswordComponent implements OnInit {
     ResetStatus = ResetStatus;
 
     constructor(
-        private formBuilder: FormBuilder,
+        private formBuilder: UntypedFormBuilder,
         private route: ActivatedRoute,
         private router: Router,
         private accountService: AccountService,
@@ -43,12 +43,16 @@ export class ForgotPasswordComponent implements OnInit {
         });
     }
 
+    // convenience getter for easy access to form fields
     get f() { return this.form.controls; }
 
     onSubmit() {
         this.submitted = true;
+
+        // reset alerts on submit
         this.alertService.clear();
 
+        // stop here if form is invalid
         if (this.form.invalid) {
             this.alertService.error('Please enter a valid email address');
             return;
@@ -56,14 +60,13 @@ export class ForgotPasswordComponent implements OnInit {
 
         this.loading = true;
         this.accountService.forgotPassword(this.f['email'].value)
-            .pipe(
-                first(),
-                finalize(() => this.loading = false)
-            )
+            .pipe(first())
+            .pipe(finalize(() => this.loading = false))
             .subscribe({
                 next: () => {
                     this.resetStatus = ResetStatus.Success;
                     this.startCountdown();
+                    this.alertService.success('Please check your email for password reset instructions');
                 },
                 error: error => this.alertService.error(error)
             });

@@ -1,18 +1,17 @@
 import { HttpInterceptorFn } from '@angular/common/http';
 import { inject } from '@angular/core';
-import { AccountService } from '@app/_services';
+import { AuthService } from '../_services/auth.service';
 import { environment } from '@environments/environment';
 
 export const jwtInterceptor: HttpInterceptorFn = (req, next) => {
-    const accountService = inject(AccountService);
-    const account = accountService.accountValue;
+    const authService = inject(AuthService);
+    const user = authService.userValue;
     const isApiUrl = req.url.startsWith(environment.apiUrl);
     
-    if (account?.jwtToken && isApiUrl) {
-        console.log('Adding auth header for:', req.url);
+    if (user?.token && isApiUrl) {
         req = req.clone({
             setHeaders: {
-                Authorization: `Bearer ${account.jwtToken}`
+                Authorization: `Bearer ${user.token}`
             }
         });
     }

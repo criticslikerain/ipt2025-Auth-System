@@ -1,58 +1,39 @@
 import { HttpInterceptorFn } from '@angular/common/http';
 import { inject } from '@angular/core';
-import { catchError, throwError } from 'rxjs';
-import { AccountService } from '@app/_services';
+import { catchError } from 'rxjs/operators';
+import { throwError } from 'rxjs';
+import { AuthService } from '@app/_services/auth.service';
+import { AlertService } from '@app/_services/alert.service';
 
 export const errorInterceptor: HttpInterceptorFn = (req, next) => {
-    const accountService = inject(AccountService);
+    const authService = inject(AuthService);
+    const alertService = inject(AlertService);
     
     return next(req).pipe(
         catchError(err => {
-            // Detailed error logging
-            const errorDetails = {
-                status: err.status,
-                statusText: err.statusText,
-                message: err.error?.message || err.statusText,
-                url: req.url,
-                method: req.method,
-                timestamp: new Date().toISOString()
-            };
-            
-            console.error('HTTP Error:', errorDetails);
-
-            // Handle authentication errors
-            if ([401, 403].includes(err.status)) {
-                if (accountService.accountValue) {
-                    console.log('Authentication error detected, logging out user');
-                    accountService.logout();
-                }
-                return throwError(() => 'Unauthorized access');
+            if ([401, 403].includes(err.status) && authService.userValue) {
+                // auto logout if 401 or 403 response returned from api
+                authService.logout();
+                alertService.error('Session expired. Please login again.');
             }
 
             // Handle network errors
             if (err.status === 0) {
-                return throwError(() => 'Network error. Please check your connection');
-            }
-
-            // Handle server errors
-            if (err.status >= 500) {
-                return throwError(() => 'Server error. Please try again later');
+                alertService.error('Unable to connect to the server. Please check your internet connection or try again later.');
+                return throwError(() => 'Network error occurred');
             }
 
             // Handle validation errors
-            if (err.status === 400) {
-                const validationError = err.error?.message || 'Validation error';
-                return throwError(() => validationError);
+            if (err.status === 400 && err.error?.errors) {
+                const validationErrors = Object.values(err.error.errors).join('<br>');
+                alertService.error(validationErrors);
             }
 
-            // Handle not found errors
-            if (err.status === 404) {
-                return throwError(() => 'Resource not found');
-            }
-
-            // Return original error message or a generic one
-            const errorMessage = err.error?.message || err.statusText || 'An error occurred';
-            return throwError(() => errorMessage);
+            // Handle other errors
+            const error = err.error?.message || err.error || err.statusText || 'Unknown Error';
+            alertService.error(error);
+            
+            return throwError(() => error);
         })
     );
 };

@@ -34,7 +34,39 @@ html, body {
     box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
 }
 
-// Add styles for registration success message
+.alert-success {
+    background-color: rgba(40, 167, 69, 0.1);
+    border-color: rgba(40, 167, 69, 0.2);
+    color: #28a745;
+    padding: 15px;
+    margin-bottom: 20px;
+    border-radius: 4px;
+
+    h4 {
+        color: #28a745;
+        margin-bottom: 10px;
+    }
+
+    ul {
+        margin: 10px 0;
+        padding-left: 20px;
+    }
+
+    li {
+        margin: 5px 0;
+    }
+
+    a {
+        color: #28a745;
+        text-decoration: underline;
+        font-weight: 500;
+
+        &:hover {
+            color: darken(#28a745, 10%);
+        }
+    }
+}
+
 .registration-success {
     text-align: center;
     padding: 15px;
@@ -74,6 +106,7 @@ html, body {
     font-size: 14px;
     font-weight: 500;
     display: flex;
+    flex-direction: column;
     align-items: center;
     justify-content: center;
     gap: 10px;
@@ -85,6 +118,39 @@ html, body {
     }
 
     animation: fadeInSlide 0.5s ease-out;
+    
+    p {
+        text-align: center;
+        margin: 0;
+    }
+    
+    strong {
+        font-weight: 600;
+    }
+    
+    .error-actions {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        margin-top: 5px;
+        width: 100%;
+        
+        .error-separator {
+            opacity: 0.7;
+            font-size: 12px;
+        }
+        
+        .action-link {
+            color: #e74c3c;
+            text-decoration: underline;
+            font-weight: 600;
+            
+            &:hover {
+                color: darken(#e74c3c, 10%);
+            }
+        }
+    }
 }
 
 @keyframes fadeInSlide {
@@ -125,8 +191,8 @@ html, body {
 
 .form-row {
     display: flex;
-    gap: 15px;
-    margin-bottom: 15px;
+    gap: 20px;
+    margin-bottom: 20px;
 
     .form-group {
         flex: 1;
@@ -135,12 +201,10 @@ html, body {
 }
 
 .form-group {
-    display: flex;
-    flex-direction: column;
-    margin-bottom: 15px;
+    margin-bottom: 20px;
 
     &.accept-terms {
-        margin-top: -5px;
+        margin-top: 10px;
     }
 }
 
@@ -148,6 +212,7 @@ html, body {
     font-size: 14px;
     color: white;
     margin-bottom: 8px;
+    display: block;
 }
 
 .form-control {
@@ -157,22 +222,27 @@ html, body {
     border-radius: 6px;
     background: rgba(255, 255, 255, 0.1);
     color: white;
-    transition: border-color 0.3s;
+    width: 100%;
+    height: 45px;
 
     &:focus {
         border-color: #667eea;
         outline: none;
     }
+}
 
-    &.invalid {
-        border-color: #e74c3c;
-    }
-
-    // Style only the dropdown options
+// Specific styling for the title select
+select.form-control {
     option {
+        background-color: white;
         color: black;
-        background: white;
     }
+}
+
+// If needed, also style the selected option
+select.form-control:focus option:checked {
+    background-color: #667eea;
+    color: white;
 }
 
 .error {
@@ -194,17 +264,18 @@ html, body {
 }
 
 .btn {
+    width: 100%;
     padding: 12px;
+    height: 45px;
     background: #667eea;
     color: white;
     border: none;
     border-radius: 6px;
-    font-size: 14px;
-    font-weight: bold;
+    font-size: 14px;  // Changed from 16px to 14px to match cancel link
+    font-weight: bold; // Changed from 500 to bold to match cancel link
     cursor: pointer;
-    transition: background 0.3s;
-    width: 100%;
-    margin-top: 10px;
+    margin-top: 25px;
+    margin-bottom: 20px;
 
     &:hover {
         background: #764ba2;
@@ -251,10 +322,62 @@ html, body {
 @media (max-width: 480px) {
     .form-row {
         flex-direction: column;
-        gap: 15px;
+        gap: 20px;
+    }
+}
 
-        .form-group {
-            margin-bottom: 0;
-        }
+.cancel-container {
+    display: flex;
+    justify-content: center;
+    margin-top: 15px;
+}
+
+.cancel-link {
+    display: block;
+    width: 100%;
+    padding: 12px;
+    background: #667eea;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background 0.3s;
+    text-decoration: none;
+    text-align: center;
+
+    &:hover {
+        background: #764ba2;
+    }
+}
+
+.verification-link {
+    display: block;
+    margin-top: 10px;
+    word-break: break-all;
+    color: #0056b3;
+    text-decoration: underline;
+    
+    &:hover {
+        color: #003d82;
+    }
+}
+
+.alert-info {
+    background-color: #e8f4ff;
+    border-color: #b8daff;
+    color: #004085;
+    padding: 15px;
+    border-radius: 4px;
+    margin-bottom: 20px;
+
+    h4 {
+        color: #004085;
+        margin-bottom: 10px;
+    }
+
+    p {
+        margin-bottom: 8px;
     }
 }

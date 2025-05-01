@@ -1,28 +1,32 @@
 
 
-  
-  
-    <h3 class="card-header">Verify Email</h3>
-    <div class="card-body">
-      <div *ngIf="emailStatus === EmailStatus.Verifying" class="verifying-message">
-        <div class="spinner"></div>
-        Verifying your email, please wait...
-      </div>
 
-      <div *ngIf="emailStatus === EmailStatus.Failed" class="registration-error">
-        <p>Verification failed. You can also verify your account using the
-          <a routerLink="/account/forgot-password">forgot password</a> page.
-        </p>
-      </div>
-
-      <div *ngIf="emailStatus === EmailStatus.Success" class="success-message">
-        <div class="success-icon">✅</div>
-        <p>Your email has been successfully verified!</p>
-        <p class="redirect-text">Redirecting to login...</p>
-      </div>
-
-      <div class="link-container" *ngIf="emailStatus !== EmailStatus.Verifying">
-        <a routerLink="/account/login" class="back-link">← Back to Login</a>
-      </div>
+  <h3 class="card-header">Verify Email</h3>
+  <div class="card-body">
+    <div *ngIf="emailStatus === EmailStatus.Verifying" class="verifying-message">
+      <div class="spinner"></div>
+      Verifying your email, please wait...
     </div>
- 
+
+    <div *ngIf="emailStatus === EmailStatus.Failed" class="registration-error">
+      <p>{{errorMessage || 'Verification failed. You can also verify your account using the'}}
+        <a routerLink="../forgot-password">forgot password</a> page.
+      </p>
+    </div>
+
+    <div *ngIf="emailStatus === EmailStatus.Success" class="success-message">
+      <div class="success-icon">✅</div>
+      <p>Your email has been successfully verified!</p>
+      <p class="redirect-text">Redirecting to login in {{countdown}} seconds...</p>
+    </div>
+
+    <div *ngIf="emailStatus === EmailStatus.AlreadyVerified" class="info-message">
+      <div class="info-icon">ℹ️</div>
+      <p>Your email has already been verified.</p>
+      <p class="redirect-text">Redirecting to login in {{countdown}} seconds...</p>
+    </div>
+
+    <div class="link-container" *ngIf="emailStatus !== EmailStatus.Verifying">
+      <a routerLink="../login" class="back-link">← Back to Login</a>
+    </div>
+  </div>
