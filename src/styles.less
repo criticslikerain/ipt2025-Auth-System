@@ -1,4 +1,4 @@
-/* You can add global styles to this file, and also import other style files */
+/* Global styles */
 * {
     box-sizing: border-box;
     margin: 0;
@@ -10,10 +10,10 @@ html, body {
     margin: 0;
     padding: 0;
     overflow: auto;
+    font-family: 'Segoe UI', sans-serif;
 }
 
 body {
-    font-family: 'Segoe UI', sans-serif;
     background-image: url('/assets/background.webp');
     background-size: cover;
     background-position: center;
@@ -23,6 +23,7 @@ body {
     width: 100%;
 }
 
+
 .app-container {
     min-height: 100vh;
     width: 100%;
@@ -30,47 +31,36 @@ body {
     display: flex;
     flex-direction: column;
     align-items: center;
-    overflow: auto;
+    overflow: visible; /* Changed from auto to visible */
 }
 
-:host {
-    display: flex;
-    flex: 1;
-    height: 100%;
-    width: 100%;
-    overflow: auto;
-}
-
-/* Remove the .form-control, .form-group, and .form-label global styles */
 
 .card {
     background: rgba(255, 255, 255, 0.05);
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
     border-radius: 12px;
-    padding: 25px 40px;
+    padding: 25px 30px;
     box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
     width: 100%;
     max-width: 800px;
     margin: 0 auto;
 }
 
-.login-card {
-    max-width: 800px;
-    padding: 35px 20px;
-}
-
 .card-header {
     color: white;
-    font-size: 2px;
+    font-size: 1rem;
     margin-bottom: 20px;
     text-align: center;
+    font-weight: 600;
+    letter-spacing: 0.5px;
 }
 
 .card-body {
     padding: 20px 0;
 }
 
+/* Form styles */
 .form-group {
     margin-bottom: 20px;
     text-align: left;
@@ -85,7 +75,7 @@ body {
 
 .form-control {
     width: 100%;
-    padding: 8px;
+    padding: 12px;
     border: 1px solid rgba(255, 255, 255, 0.3);
     border-radius: 6px;
     background: rgba(255, 255, 255, 0.1);
@@ -102,20 +92,7 @@ body {
     }
 }
 
-select.form-control {
-    option {
-        background-color: white;
-        color: black;
-    }
-}
-
-.error {
-    color: #e74c3c;
-    font-size: 12px;
-    margin-top: 5px;
-    text-align: left;
-}
-
+/* Button styles */
 .btn {
     width: 100%;
     padding: 12px;
@@ -138,21 +115,12 @@ select.form-control {
     }
 }
 
-.links {
-    display: flex;
-    justify-content: space-between;
-    margin-top: 15px;
-    gap: 20px;
-
-    a {
-        color: #cfd8ff;
-        text-decoration: none;
-        font-size: 14px;
-
-        &:hover {
-            text-decoration: underline;
-        }
-    }
+/* Utility classes */
+.error {
+    color: #e74c3c;
+    font-size: 12px;
+    margin-top: 5px;
+    text-align: left;
 }
 
 .spinner {

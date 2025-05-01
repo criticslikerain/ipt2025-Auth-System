@@ -1,8 +1,9 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { first, takeUntil } from 'rxjs/operators';
 import { Subject } from 'rxjs';
+
 import { AccountService, AlertService } from '@app/_services';
 import { Account, AccountWithDelete } from '@app/_models/account';
 import { HttpErrorResponse } from '@angular/common/http';
@@ -10,14 +11,14 @@ import { HttpErrorResponse } from '@angular/common/http';
 @Component({
     selector: 'app-list',
     templateUrl: './list.component.html',
-    styleUrls: ['./list.component.css'],
+    styleUrls: ['./list.component.less'],
     standalone: true,
     imports: [
         CommonModule,
         RouterModule
     ]
 })
-export class ListComponent implements OnInit {
+export class ListComponent implements OnInit, OnDestroy {
     accounts: AccountWithDelete[] = [];
     loading = false;
     private destroy$ = new Subject<void>();
@@ -36,6 +37,11 @@ export class ListComponent implements OnInit {
         this.destroy$.complete();
     }
 
+    getStatusClass(status: string | undefined): string {
+        if (!status) return 'status-inactive';
+        return status === 'Active' ? 'status-active' : 'status-inactive';
+    }
+
     private loadAccounts(): void {
         this.loading = true;
         this.alertService.clear();
@@ -49,6 +55,7 @@ export class ListComponent implements OnInit {
                 next: (accounts) => {
                     this.accounts = accounts.map(account => ({
                         ...account,
+                        status: account.status === 'Inactive' ? 'Inactive' : 'Active',
                         isDeleting: false
                     }));
                     this.loading = false;
@@ -61,7 +68,7 @@ export class ListComponent implements OnInit {
             });
     }
 
-    deleteAccount(id: string): void {
+    deleteAccount(id: number): void {  // Changed from string to number
         if (!id) {
             this.alertService.error('Invalid account ID');
             return;
@@ -95,10 +102,9 @@ export class ListComponent implements OnInit {
                         this.accounts = this.accounts.filter(x => x.id !== id);
                         this.alertService.success('Account deleted successfully');
                     },
-                    error: (error: HttpErrorResponse) => {
+                    error: error => {
                         account.isDeleting = false;
-                        this.alertService.error('Error deleting account. Please try again.');
-                        console.error('Error deleting account:', error);
+                        this.alertService.error('Error deleting account');
                     }
                 });
         }

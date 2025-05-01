@@ -1,43 +1,93 @@
 
-    <div class="login-body">
-      <form [formGroup]="form" (ngSubmit)="onSubmit()">
-        <div class="form-group">
-          <label class="form-label">Email</label>
-          <input 
-            type="email" 
-            class="form-control" 
-            formControlName="email"
-            [ngClass]="{ 'invalid': submitted && f['email'].errors }"
-            placeholder="Enter your email"
-          />
-          <div class="error" *ngIf="submitted && f['email'].errors">
-            <div *ngIf="f['email'].errors['required']">Email is required</div>
-            <div *ngIf="f['email'].errors['email']">Email must be valid</div>
-          </div>
+
+    <h3 class="card-header">Login</h3>
+    <div class="card-body">
+        <!-- Registration Verification Message -->
+        <div *ngIf="showVerificationMessage" class="verification-message">
+            <button type="button" class="close-btn" (click)="clearVerificationMessage()">&times;</button>
+            <h4>Verification Email</h4>
+            <p>Thanks for registering!</p>
+            <p>Please click the link below to verify your email address:</p>
+            <a [href]="getVerificationUrl()" class="verification-link">
+                {{getVerificationUrl()}}
+            </a>
         </div>
 
-        <div class="form-group">
-          <label class="form-label">Password</label>
-          <input 
-            type="password" 
-            class="form-control" 
-            formControlName="password"
-            [ngClass]="{ 'invalid': submitted && f['password'].errors }"
-            placeholder="Enter your password"
-          />
-          <div class="error" *ngIf="submitted && f['password'].errors">
-            <div *ngIf="f['password'].errors['required']">Password is required</div>
-          </div>
+        <!-- Email Not Registered Error -->
+        <div *ngIf="loginErrorType === LoginErrorType.EmailNotRegistered" class="error-message not-registered-error">
+            <p>The email address <strong>{{errorEmail}}</strong> does not exist.</p>
+            <div class="error-actions">
+                <a routerLink="../register" class="action-link">Create an account</a>
+            </div>
         </div>
 
-        <button class="btn" type="submit" [disabled]="loading">
-          <span *ngIf="loading" class="spinner"></span>
-          Login
-        </button>
-      </form>
+        <!-- Password Incorrect Error -->
+        <div *ngIf="loginErrorType === LoginErrorType.PasswordIncorrect" class="error-message credentials-error">
+            <p>Password is incorrect. Please try again or reset your password.</p>
+            <a routerLink="../forgot-password" class="action-link">Forgot password?</a>
+        </div>
 
-      <div class="links">
-        <a routerLink="../register" class="link">Create account</a>
-        <a routerLink="../forgot-password" class="link">Forgot Password?</a>
-      </div>
+        <!-- Email Not Verified Error -->
+        <div *ngIf="loginErrorType === LoginErrorType.EmailNotVerified" class="error-message verification-error">
+            <p>The email address <strong>{{errorEmail}}</strong> is not verified.</p>
+            <p class="error-subtitle">Please click the link below to verify your email address:</p>
+            <div class="error-actions">
+                <a [href]="getVerificationUrl()" class="verification-link">
+                    <i class="fas fa-envelope-open-text"></i> Verify Email
+                </a>
+            </div>
+        </div>
+
+        <!-- Account Inactive Error -->
+        <div *ngIf="loginErrorType === LoginErrorType.AccountInactive" class="error-message inactive-error">
+            <p>The account for <strong>{{errorEmail}}</strong> is inactive.</p>
+            <p class="error-subtitle">Please contact the system administrator for assistance.</p>
+        </div>
+
+        <!-- Generic Invalid Credentials Error (fallback) -->
+        <div *ngIf="loginErrorType === LoginErrorType.InvalidCredentials" class="error-message credentials-error">
+            <p>Invalid login credentials. Please try again.</p>
+            <a routerLink="../forgot-password" class="action-link">Forgot password?</a>
+        </div>
+
+        <form [formGroup]="form" (ngSubmit)="onSubmit($event)">
+            <div class="form-group">
+                <label class="form-label">Email</label>
+                <input 
+                    type="email" 
+                    class="form-control" 
+                    formControlName="email"
+                    [ngClass]="{ 'invalid': submitted && f['email'].errors }"
+                    placeholder="Enter your email"
+                />
+                <div class="error" *ngIf="submitted && f['email'].errors">
+                    <div *ngIf="f['email'].errors['required']">Email is required</div>
+                    <div *ngIf="f['email'].errors['email']">Email must be valid</div>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Password</label>
+                <input 
+                    type="password" 
+                    class="form-control" 
+                    formControlName="password"
+                    [ngClass]="{ 'invalid': submitted && f['password'].errors }"
+                    placeholder="Enter your password"
+                />
+                <div class="error" *ngIf="submitted && f['password'].errors">
+                    <div *ngIf="f['password'].errors['required']">Password is required</div>
+                </div>
+            </div>
+
+            <button [disabled]="loading" class="btn btn-primary">
+                <span *ngIf="loading" class="spinner"></span>
+                Login
+            </button>
+        </form>
+
+        <div class="links">
+            <a routerLink="../register" class="link">Create account</a>
+            <a routerLink="../forgot-password" class="link">Forgot Password?</a>
+        </div>
     </div>

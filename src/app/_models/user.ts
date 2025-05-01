@@ -1,14 +1,25 @@
-export type Role = 'User' | 'Admin';
-
 export interface User {
-    id: string;
+    id: number;
+    firstName: string;
+    lastName: string;
     email: string;
-    title?: string;
-    firstName?: string;
-    lastName?: string;
-    role?: Role;
+    role: string;
+    dateCreated?: Date;
     token?: string;
-    jwtToken?: string;
-    refreshToken?: string;
+    jwtToken?: string; 
 }
+
+export interface RegisterRequest {
+    title?: string;
+    firstName: string;
+    lastName: string;
+    email: string;
+    password: string;
+    confirmPassword: string;
+    acceptTerms: boolean;
+}
+
+
+
+
 

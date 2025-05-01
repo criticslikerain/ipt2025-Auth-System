@@ -9,22 +9,28 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 20px;
+  padding: 40px 20px;
 }
 
 .card {
   width: 100%;
   max-width: 400px;
-  position: relative;
-  z-index: 1;
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-radius: 12px;
+  padding: 35px 40px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
 }
 
 .brand-box {
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-bottom: 20px;
+  margin-bottom: 30px;
   gap: 15px;
+  border-bottom: 2px solid rgba(255, 255, 255, 0.1);
+  padding-bottom: 20px;
 }
 
 .logo {
@@ -44,10 +50,17 @@
 }
 
 router-outlet + * {
-    display: block;
-    overflow: hidden;
+  display: block;
 }
 
+@media (max-width: 576px) {
+  .container {
+    padding: 20px;
+  }
 
+  .card {
+    padding: 25px 20px;
+  }
+}
 
 

@@ -1,26 +1,24 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
+import { Router, RouterModule, NavigationEnd } from '@angular/router';
 import { CommonModule } from '@angular/common';
-import { RouterModule } from '@angular/router';
-import { AccountService } from '@app/_services';
+import { AuthService } from '@app/_services/auth.service';
+import { filter } from 'rxjs/operators';
 
 @Component({
     selector: 'app-nav',
     standalone: true,
-    imports: [
-        CommonModule,
-        RouterModule
-    ],
+    imports: [RouterModule, CommonModule],
     template: `
-        <nav class="navbar">
+        <nav class="navbar" *ngIf="!isVerifyEmailRoute">
             <div class="nav-brand">
                 <a routerLink="/">Auth System</a>
             </div>
             <div class="nav-items">
-                <ng-container *ngIf="!accountService.accountValue">
+                <ng-container *ngIf="!authService.userValue">
                     <a routerLink="/account/login" routerLinkActive="active">Login</a>
                     <a routerLink="/account/register" routerLinkActive="active">Register</a>
                 </ng-container>
-                <ng-container *ngIf="accountService.accountValue">
+                <ng-container *ngIf="authService.userValue">
                     <a routerLink="/profile" routerLinkActive="active">Profile</a>
                     <a routerLink="/admin" routerLinkActive="active" *ngIf="isAdmin">Admin</a>
                     <a href="javascript:void(0)" (click)="logout()">Logout</a>
@@ -63,15 +61,34 @@ import { AccountService } from '@app/_services';
         }
     `]
 })
-export class NavComponent {
-    constructor(public accountService: AccountService) {}
+export class NavComponent implements OnInit {
+    isAdmin = false;
+    isVerifyEmailRoute = false;
 
-    logout() {
-        this.accountService.logout();
+    constructor(
+        private router: Router,
+        public authService: AuthService
+    ) {
+        // Check if current route is verify-email
+        this.router.events.pipe(
+            filter(event => event instanceof NavigationEnd)
+        ).subscribe((event: any) => {
+            this.isVerifyEmailRoute = event.url.includes('/account/verify-email');
+        });
     }
 
-    get isAdmin() {
-        return this.accountService.accountValue?.role === 'Admin';
+    ngOnInit() {
+        // Check if the user is an admin
+        this.authService.user.subscribe(user => {
+            this.isAdmin = user?.role === 'Admin';
+        });
+        
+        // Check initial route
+        this.isVerifyEmailRoute = this.router.url.includes('/account/verify-email');
+    }
+
+    logout() {
+        this.authService.logout();
     }
 }
 

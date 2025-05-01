@@ -41,15 +41,17 @@ import { CommonModule } from '@angular/common';
         }
 
         .stat-card {
-            background: white;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
             padding: 1.5rem;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
         }
 
         .stat-card h3 {
             margin: 0;
-            color: #666;
+            color: rgba(255, 255, 255, 0.7);
             font-size: 1rem;
         }
 
@@ -57,11 +59,11 @@ import { CommonModule } from '@angular/common';
             font-size: 2rem;
             font-weight: bold;
             margin-top: 0.5rem;
-            color: #2c3e50;
+            color: white;
         }
 
         .status-good {
-            color: #27ae60;
+            color: #2ecc71;
         }
     `]
 })

@@ -66,14 +66,13 @@ html, body {
   
   .login-body {
     width: 100%;
-    max-width: 400px;  // Changed from 600px
+    max-width: 400px;
     margin: 0 auto;
   }
   
   /* 🔷 Form Styles */
   .form-group {
     margin-bottom: 20px;
-    width: 100%;
 
     .form-label {
       display: block;
@@ -86,12 +85,12 @@ html, body {
     .form-control {
       width: 100%;
       padding: 12px;
+      height: 45px;
       border: 1px solid rgba(255, 255, 255, 0.3);
       border-radius: 6px;
       background: rgba(255, 255, 255, 0.1);
       color: white;
       font-size: 14px;
-      height: 45px;
 
       &:focus {
         outline: none;
@@ -100,10 +99,6 @@ html, body {
 
       &::placeholder {
         color: rgba(255, 255, 255, 0.5);
-      }
-
-      &.invalid {
-        border-color: #e74c3c;
       }
     }
   }
@@ -123,10 +118,11 @@ html, body {
     color: white;
     border: none;
     border-radius: 6px;
-    font-size: 16px;
-    font-weight: 500;
+    font-size: 14px;
+    font-weight: bold;
     cursor: pointer;
-    margin-top: 10px;
+    margin-top: 25px;
+    margin-bottom: 20px;
 
     &:hover {
       background: #764ba2;
@@ -142,7 +138,7 @@ html, body {
     display: flex;
     justify-content: space-between;
     margin-top: 20px;
-    padding: 0 10px;
+    gap: 10px;
 
     .link {
       color: rgba(255, 255, 255, 0.8);
@@ -160,20 +156,18 @@ html, body {
     display: inline-block;
     width: 16px;
     height: 16px;
-    border: 2px solid #ffffff;
-    border-top: 2px solid transparent;
+    border: 2px solid rgba(255, 255, 255, 0.3);
     border-radius: 50%;
-    animation: spin 1s linear infinite;
+    border-top-color: white;
+    animation: spin 1s ease-in-out infinite;
     margin-right: 8px;
   }
   
   @keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
+    to { transform: rotate(360deg); }
   }
 
   .login-specific {
-    // Add any login-specific styles here
     .remember-me {
       display: flex;
       align-items: center;
@@ -197,21 +191,270 @@ html, body {
     }
   }
 
-  
-// Remove all backdrop filters from body and html
-html, body {
-  backdrop-filter: none;
-  -webkit-backdrop-filter: none;
-}
-
-// Adjust responsive behavior if needed
-@media (max-width: 576px) {
+  // Responsive adjustments
+  @media (max-width: 576px) {
     .container {
-        padding: 20px;
+      padding: 20px;
     }
     
     .login-card {
-        padding: 25px 20px;
+      padding: 25px 20px;
+    }
+  }
+
+  .error-message {
+    text-align: center;
+    padding: 15px;
+    margin-bottom: 20px;
+    border-radius: 8px;
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    font-size: 14px;
+    font-weight: 500;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    animation: fadeInSlide 0.5s ease-out;
+    color: white; /* Set default text color to white for all error messages */
+
+    strong {
+        font-weight: 600;
+        color: white; /* Ensure strong text is also white */
+    }
+
+    .error-subtitle {
+        font-size: 13px;
+        opacity: 0.9;
+        color: white; /* Ensure subtitle is white */
+    }
+
+    .error-actions {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-top: 5px;
+
+        .action-separator {
+            opacity: 0.7;
+            font-size: 12px;
+            color: white; /* Ensure separator is white */
+        }
+    }
+
+    &.not-registered-error {
+        background: rgba(142, 68, 173, 0.15);
+        border: 1px solid rgba(142, 68, 173, 0.3);
+        color: white; /* Override the purple color with white */
+
+        &::before {
+            content: '🔍';
+            font-size: 16px;
+            margin-bottom: 5px;
+        }
+
+        .action-link {
+            color: white; /* Make links white */
+            text-decoration: underline;
+            font-weight: 600;
+
+            &:hover {
+                color: rgba(255, 255, 255, 0.8); /* Slightly dimmed white on hover */
+            }
+        }
+    }
+
+    &.credentials-error {
+        background: rgba(231, 76, 60, 0.15);
+        border: 1px solid rgba(231, 76, 60, 0.3);
+        color: white; /* Override the red color with white */
+
+        &::before {
+            content: '⚠️';
+            font-size: 16px;
+            margin-bottom: 5px;
+        }
+
+        .action-link {
+            color: white; /* Make links white */
+            text-decoration: underline;
+            font-weight: 600;
+
+            &:hover {
+                color: rgba(255, 255, 255, 0.8); /* Slightly dimmed white on hover */
+            }
+        }
+    }
+
+    &.verification-error {
+        background: rgba(243, 156, 18, 0.15);
+        border: 1px solid rgba(243, 156, 18, 0.3);
+        color: white; /* Override the orange color with white */
+
+        &::before {
+            content: '📧';
+            font-size: 16px;
+            margin-bottom: 5px;
+        }
+
+        .action-link {
+            color: white; /* Make links white */
+            text-decoration: underline;
+            font-weight: 600;
+
+            &:hover {
+                color: rgba(255, 255, 255, 0.8); /* Slightly dimmed white on hover */
+            }
+        }
+    }
+
+    &.inactive-error {
+        background: rgba(52, 152, 219, 0.15);
+        border: 1px solid rgba(52, 152, 219, 0.3);
+        color: white; /* Override the blue color with white */
+
+        &::before {
+            content: '🔒';
+            font-size: 16px;
+            margin-bottom: 5px;
+        }
+
+        .support-link {
+            color: white; /* Make links white */
+            text-decoration: underline;
+            font-weight: 600;
+            margin-top: 5px;
+
+            &:hover {
+                color: rgba(255, 255, 255, 0.8); /* Slightly dimmed white on hover */
+            }
+        }
+    }
+  }
+
+  @keyframes fadeInSlide {
+    0% {
+      opacity: 0;
+      transform: translateY(-10px);
+    }
+    100% {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .verification-button {
+    display: inline-block;
+    padding: 8px 16px;
+    background-color: #4CAF50;
+    color: white;
+    border-radius: 4px;
+    text-decoration: none;
+    font-weight: 500;
+    margin: 10px 0;
+    transition: background-color 0.3s;
+    border: none;
+    cursor: pointer;
+    
+    &:hover {
+        background-color: #45a049;
+        color: white;
+        text-decoration: none;
+    }
+    
+    i {
+        margin-right: 6px;
+    }
+}
+
+.verification-link {
+    color: white;
+    text-decoration: underline;
+    font-weight: 600;
+    font-size: 15px;
+    
+    &:hover {
+        color: rgba(255, 255, 255, 0.8);
+    }
+    
+    i {
+        margin-right: 6px;
+    }
+}
+
+.error-actions {
+    display: flex;
+    justify-content: center;
+    margin-top: 10px;
+}
+
+.verification-message {
+    position: relative;
+    background: rgba(46, 204, 113, 0.15);
+    border: 1px solid rgba(46, 204, 113, 0.3);
+    color: white;
+    padding: 15px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    text-align: center;
+    font-size: 14px;
+    font-weight: 500;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    animation: fadeInSlide 0.5s ease-out;
+    
+    .close-btn {
+        position: absolute;
+        top: 5px;
+        right: 5px;
+        background: transparent;
+        border: none;
+        color: rgba(255, 255, 255, 0.7);
+        font-size: 18px;
+        cursor: pointer;
+        padding: 0;
+        width: 24px;
+        height: 24px;
+        line-height: 24px;
+        text-align: center;
+        
+        &:hover {
+            color: white;
+        }
+    }
+    
+    h4 {
+        margin-top: 0;
+        margin-bottom: 10px;
+        color: white;
+        font-weight: 600;
+        font-size: 16px;
+    }
+    
+    p {
+        margin-bottom: 10px;
+        color: white;
+    }
+    
+    .verification-link {
+        word-break: break-all;
+        color: white;
+        text-decoration: underline;
+        font-size: 14px;
+        
+        &:hover {
+            color: rgba(255, 255, 255, 0.8);
+        }
+    }
+
+    &::before {
+        content: '📧';
+        font-size: 24px;
+        margin-bottom: 5px;
     }
 }
   

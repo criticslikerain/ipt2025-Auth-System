@@ -1,29 +1,16 @@
-import { Component, OnInit, OnDestroy, Input } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { AlertService } from '@app/_services';
-
-enum AlertType {
-    Success = 'success',
-    Error = 'error',
-    Info = 'info',
-    Warning = 'warning'
-}
-
-interface Alert {
-    type?: AlertType;
-    message?: string;
-    fade?: boolean;
-    keepAfterRouteChange?: boolean;
-    autoClose?: boolean;
-}
+import { Subscription } from 'rxjs';
+import { AlertService } from '@app/_services/alert.service';
 
 @Component({
-    selector: 'app-alert', // Changed from 'alert' to 'app-alert'
+    selector: 'app-alert',
     standalone: true,
     imports: [CommonModule],
     template: `
-        <div *ngIf="alert" class="alert" [ngClass]="cssClass">
-            {{alert.message}}
+        <div *ngIf="message" class="alert" [ngClass]="message.cssClass">
+            <span [innerHTML]="message.text"></span>
+            <button class="close" (click)="clear()">&times;</button>
         </div>
     `,
     styles: [`
@@ -32,6 +19,7 @@ interface Alert {
             margin-bottom: 1rem;
             border: 1px solid transparent;
             border-radius: 4px;
+            position: relative;
         }
         .alert-success {
             color: #155724;
@@ -53,60 +41,43 @@ interface Alert {
             background-color: #fff3cd;
             border-color: #ffeeba;
         }
+        .close {
+            position: absolute;
+            right: 0.5rem;
+            top: 0.5rem;
+            border: none;
+            background: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            opacity: 0.5;
+        }
+        .close:hover {
+            opacity: 1;
+        }
     `]
 })
 export class AlertComponent implements OnInit, OnDestroy {
-    @Input() id = 'default-alert';
-    @Input() fade = true;
-
-    alerts: Alert[] = [];
-    alert: Alert | null = null;
-    alertSubscription: any;
+    private subscription!: Subscription;
+    message: any;
 
     constructor(private alertService: AlertService) { }
 
     ngOnInit() {
-        this.alertSubscription = this.alertService.onAlert(this.id)
-            .subscribe(alert => {
-                if (!alert.message) {
-                    this.alerts = this.alerts.filter(x => x.keepAfterRouteChange);
-                    this.alerts.forEach(x => delete x.keepAfterRouteChange);
-                    return;
-                }
-
-                this.alerts.push(alert);
-                this.alert = alert;
-
-                if (alert.autoClose) {
-                    setTimeout(() => this.removeAlert(alert), 3000);
+        this.subscription = this.alertService.alerts
+            .subscribe(message => {
+                this.message = message;
+                if (message && message.autoClose !== false) {
+                    setTimeout(() => this.clear(), 5000);
                 }
             });
     }
 
     ngOnDestroy() {
-        if (this.alertSubscription) {
-            this.alertSubscription.unsubscribe();
-        }
+        this.subscription?.unsubscribe();
     }
 
-    removeAlert(alert: Alert) {
-        if (!this.alerts.includes(alert)) return;
-        this.alerts = this.alerts.filter(x => x !== alert);
-    }
-
-    cssClass(alert: Alert): string {
-        if (!alert) return '';
-
-        const classes = ['alert'];
-        
-        if (alert.type) {
-            classes.push(`alert-${alert.type}`);
-        }
-
-        if (alert.fade) {
-            classes.push('fade');
-        }
-
-        return classes.join(' ');
+    clear() {
+        this.alertService.clear();
+        this.message = null;
     }
 }

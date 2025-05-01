@@ -1,68 +1,79 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
+import { CommonModule, DatePipe } from '@angular/common';
 import { Router } from '@angular/router';
 import { Subject } from 'rxjs';
 import { takeUntil, finalize } from 'rxjs/operators';
-import { AccountService, AlertService } from '@app/_services';
-import { Account } from '@app/_models/account';
-import { CommonModule } from '@angular/common';
+import { AuthService } from '@app/_services/auth.service';
+import { AlertService } from '@app/_services/alert.service';
+import { User } from '@app/_models';
 
 @Component({
     selector: 'app-home',
     templateUrl: './home.component.html',
+    styleUrls: ['./home.component.less'],
     standalone: true,
-    imports: [CommonModule]
+    imports: [CommonModule, DatePipe]
 })
 export class HomeComponent implements OnInit, OnDestroy {
-    user: Account | null = null;
+    user: User | null = null;
     loading = false;
     private destroy$ = new Subject<void>();
 
     constructor(
-        private accountService: AccountService,
+        private authService: AuthService,
         private alertService: AlertService,
         private router: Router
     ) {
-        this.user = this.accountService.accountValue;
+        this.user = this.authService.userValue;
         
-        this.accountService.account
+        this.authService.user
             .pipe(takeUntil(this.destroy$))
-            .subscribe(user => {
-                this.user = user;
+            .subscribe({
+                next: (user) => {
+                    this.user = user;
+                    if (!user) {
+                        this.router.navigate(['/account/login']);
+                    }
+                },
+                error: (error) => {
+                    console.error('Error in user subscription:', error);
+                    this.alertService.error('Error loading user data');
+                }
             });
     }
 
-    ngOnInit() {
-        if (!this.user?.jwtToken) {
+    ngOnInit(): void {
+        if (!this.user) {
             this.router.navigate(['/account/login']);
             return;
         }
         this.loadUserDetails();
     }
 
-    ngOnDestroy() {
+    ngOnDestroy(): void {
         this.destroy$.next();
         this.destroy$.complete();
     }
 
-    private loadUserDetails() {
+    private loadUserDetails(): void {
         if (!this.user?.id) {
-            this.router.navigate(['/account/login']);
             return;
         }
 
         this.loading = true;
-        this.accountService.getById(this.user.id.toString())
+        this.authService.getUserDetails(this.user.id)
             .pipe(
                 takeUntil(this.destroy$),
                 finalize(() => this.loading = false)
             )
             .subscribe({
-                next: (user: Account) => {
+                next: (user) => {
                     this.user = user;
                 },
                 error: (error) => {
+                    console.error('Error loading user details:', error);
                     if (error.status === 401) {
-                        this.accountService.logout();
+                        this.authService.logout();
                         this.router.navigate(['/account/login']);
                     } else {
                         this.alertService.error('Failed to load user details');

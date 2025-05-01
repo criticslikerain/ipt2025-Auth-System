@@ -1,37 +1,33 @@
 import { Component, OnInit } from '@angular/core';
+import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { Router } from '@angular/router';
+import { AccountService } from '@app/_services/account.service';
+import { AlertService } from '@app/_services/alert.service';
+import { RegisterRequest } from '@app/_models';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
-import { Router, ActivatedRoute } from '@angular/router';
-import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { first } from 'rxjs/operators';
-import { AccountService, AlertService } from '@app/_services';
-import { MustMatch } from '@app/_helpers';
-import { AlertComponent } from '@app/_components/alert.component';
-import { RegisterRequest } from '@app/_models';
+import { MustMatch } from '@app/_helpers/must-match.validator';
 
 @Component({
     selector: 'app-register',
     templateUrl: './register.component.html',
     styleUrls: ['./register.component.less'],
     standalone: true,
-    imports: [
-        CommonModule,
-        ReactiveFormsModule,
-        RouterModule,
-        AlertComponent
-    ]
+    imports: [CommonModule, ReactiveFormsModule, RouterModule]
 })
 export class RegisterComponent implements OnInit {
     form!: FormGroup;
     loading = false;
     submitted = false;
     registrationSuccess = false;
-    registrationError = ''; // Add this line
+    isFirstUserRegistered = false;
+    verificationMessage: string = '';
+    registrationError: string = ''; 
 
     constructor(
         private formBuilder: FormBuilder,
-        private route: ActivatedRoute,
         private router: Router,
         private accountService: AccountService,
         private alertService: AlertService
@@ -39,7 +35,7 @@ export class RegisterComponent implements OnInit {
 
     ngOnInit() {
         this.form = this.formBuilder.group({
-            title: ['', Validators.required],
+            title: [''],
             firstName: ['', Validators.required],
             lastName: ['', Validators.required],
             email: ['', [Validators.required, Validators.email]],
@@ -51,53 +47,76 @@ export class RegisterComponent implements OnInit {
         });
     }
 
+    passwordMatchValidator(g: FormGroup) {
+        return g.get('password')?.value === g.get('confirmPassword')?.value
+            ? null : { 'mismatch': true };
+    }
+
     get f() { return this.form.controls; }
 
     onSubmit() {
         this.submitted = true;
-        this.alertService.clear();
-        this.registrationError = '';
+        this.registrationError = ''; // Clear any previous errors
 
         if (this.form.invalid) {
             return;
         }
 
-        const registrationData: RegisterRequest = {
-            title: this.form.get('title')?.value,
-            firstName: this.form.get('firstName')?.value,
-            lastName: this.form.get('lastName')?.value,
-            email: this.form.get('email')?.value,
-            password: this.form.get('password')?.value,
-            confirmPassword: this.form.get('confirmPassword')?.value,
-            acceptTerms: this.form.get('acceptTerms')?.value
-        };
-
         this.loading = true;
-        this.accountService.register(registrationData)
+        const registrationData = this.form.value;
+        
+        this.accountService.register(this.form.value)
             .pipe(first())
             .subscribe({
-                next: () => {
-                    this.registrationSuccess = true;
-                    this.registrationError = '';
-                    
-                    setTimeout(() => {
-                        this.router.navigate(['../login'], { relativeTo: this.route });
-                    }, 2000);
+                next: (response: any) => {
+                    if (response?.isFirstUser) {
+                        this.isFirstUserRegistered = true;
+                        this.alertService.success('Admin registration successful. You can login immediately.', 
+                            { keepAfterRouteChange: true, autoClose: false });
+                        
+                        // Redirect to login page after a longer delay (5 seconds instead of 1.5)
+                        setTimeout(() => {
+                            this.router.navigate(['/account/login'], { 
+                                queryParams: { 
+                                    email: this.f['email'].value,
+                                    registered: true,
+                                    admin: true
+                                }
+                            });
+                        }, 5000); // Changed from 1500 to 5000 milliseconds
+                    } else {
+                        this.registrationSuccess = true;
+                        
+                        // Store verification token in localStorage for retrieval
+                        const verificationToken = response?.verificationToken;
+                        if (verificationToken) {
+                            try {
+                                // Store in a separate verification tokens object
+                                const tokensJson = localStorage.getItem('verificationTokens') || '{}';
+                                const tokens = JSON.parse(tokensJson);
+                                tokens[this.f['email'].value] = verificationToken;
+                                localStorage.setItem('verificationTokens', JSON.stringify(tokens));
+                                console.log('Stored verification token for email:', this.f['email'].value);
+                            } catch (e) {
+                                console.error('Error storing verification token:', e);
+                            }
+                        }
+                        
+                        // Redirect to login page with query params
+                        this.router.navigate(['/account/login'], { 
+                            queryParams: { 
+                                email: this.f['email'].value,
+                                registered: true,
+                                verificationToken: verificationToken
+                            }
+                        });
+                    }
+                    this.loading = false;
                 },
                 error: error => {
+                    this.registrationError = error;
                     this.loading = false;
-                    this.registrationSuccess = false;
-                    
-                    // Specific error handling
-                    if (error.error?.message?.toLowerCase().includes('email') || 
-                        error.error?.toLowerCase().includes('email')) {
-                        this.registrationError = 'Email already registered!';
-                    } else {
-                        this.registrationError = 'Email already registered!';
-                    }
-                },
-                complete: () => {
-                    this.loading = false;
+                    this.alertService.error(error);
                 }
             });
     }

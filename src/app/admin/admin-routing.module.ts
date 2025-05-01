@@ -6,13 +6,12 @@ import { StatusManagementComponent } from './status/status-management.component'
 import { StatusDetailsComponent } from './status/status-details.component';
 import { SettingsComponent } from './settings.component';
 import { authGuard } from '../_helpers/auth.guard';
-import { adminGuard } from '../_helpers/admin.guard';
 
 const routes: Routes = [
     {
         path: '',
         component: LayoutComponent,
-        canActivate: [authGuard, adminGuard],
+        canActivate: [authGuard],
         children: [
             {
                 path: '',
@@ -21,34 +20,34 @@ const routes: Routes = [
             },
             {
                 path: 'dashboard',
-                component: DashboardComponent
+                component: DashboardComponent,
+                title: 'Admin Dashboard'
             },
             {
                 path: 'accounts',
                 loadChildren: () => import('./accounts/account-routing.module')
-                    .then(m => m.AccountRoutingModule)
-            },
-            {
-                path: 'employees',
-                loadChildren: () => import('./employees/employee-routing.module')
-                    .then(m => m.EmployeeRoutingModule)
+                    .then(m => m.AccountRoutingModule),
+                title: 'Account Management'
             },
             {
                 path: 'status',
                 children: [
                     {
                         path: '',
-                        component: StatusManagementComponent
+                        component: StatusManagementComponent,
+                        title: 'Status Management'
                     },
                     {
                         path: ':id',
-                        component: StatusDetailsComponent
+                        component: StatusDetailsComponent,
+                        title: 'Status Details'
                     }
                 ]
             },
             {
                 path: 'settings',
-                component: SettingsComponent
+                component: SettingsComponent,
+                title: 'Admin Settings'
             }
         ]
     }
@@ -58,4 +57,8 @@ const routes: Routes = [
     imports: [RouterModule.forChild(routes)],
     exports: [RouterModule]
 })
-export class AdminRoutingModule {}
+export class AdminRoutingModule {
+    constructor() {
+        console.log('Admin Routing Module loaded');
+    }
+}

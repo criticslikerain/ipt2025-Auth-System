@@ -1,23 +1,25 @@
 import { Component, OnInit } from '@angular/core';
 import { Router, ActivatedRoute } from '@angular/router';
-import { FormBuilder, FormGroup, Validators, ReactiveFormsModule, FormsModule } from '@angular/forms';
+import { UntypedFormBuilder, UntypedFormGroup, Validators, ReactiveFormsModule, FormsModule } from '@angular/forms';
 import { first } from 'rxjs/operators';
 import { CommonModule } from '@angular/common';
 
 import { AccountService, AlertService } from '@app/_services';
+import { MustMatch } from '@app/_helpers';
 
 @Component({
     selector: 'app-add-edit',
     templateUrl: './add-edit.component.html',
-    standalone: true, // Make the component standalone
+    styleUrls: ['./add-edit.component.less'],
+    standalone: true,
     imports: [
-        CommonModule,        // For ngIf, ngFor, etc.
-        ReactiveFormsModule, // For formGroup, formControl
-        FormsModule,        // For ngModel
+        CommonModule,
+        ReactiveFormsModule,
+        FormsModule,
     ]
 })
 export class AddEditComponent implements OnInit {
-    form!: FormGroup;
+    form!: UntypedFormGroup;
     id?: string;
     isAddMode!: boolean;
     loading = false;
@@ -28,7 +30,7 @@ export class AddEditComponent implements OnInit {
     ];
 
     constructor(
-        private formBuilder: FormBuilder,
+        private formBuilder: UntypedFormBuilder,
         private route: ActivatedRoute,
         private router: Router,
         private accountService: AccountService,
@@ -39,39 +41,29 @@ export class AddEditComponent implements OnInit {
         this.id = this.route.snapshot.params['id'];
         this.isAddMode = !this.id;
 
-        const passwordValidators = [
-            Validators.minLength(6),
-            Validators.pattern(/^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{6,}$/)
-        ];
-        if (this.isAddMode) {
-            passwordValidators.push(Validators.required);
-        }
-
-        this.form = this.formBuilder.group({
+        const formGroup = {
+            title: ['', Validators.required],
             firstName: ['', Validators.required],
             lastName: ['', Validators.required],
             email: ['', [Validators.required, Validators.email]],
             role: ['', Validators.required],
-            password: ['', passwordValidators],
+            status: ['Active', Validators.required],
+            password: ['', [Validators.minLength(6), this.isAddMode ? Validators.required : Validators.nullValidator]],
             confirmPassword: ['']
-        }, {
-            validator: this.passwordMatchValidator
+        };
+
+        this.form = this.formBuilder.group(formGroup, {
+            validator: MustMatch('password', 'confirmPassword')
         });
 
         if (!this.isAddMode) {
             this.accountService.getById(this.id!)
                 .pipe(first())
-                .subscribe(account => this.form.patchValue(account));
-        }
-    }
-
-    private passwordMatchValidator(g: FormGroup) {
-        const password = g.get('password');
-        const confirmPassword = g.get('confirmPassword');
-        if (password?.value && confirmPassword?.value && password.value !== confirmPassword.value) {
-            confirmPassword.setErrors({ 'passwordMismatch': true });
-        } else {
-            confirmPassword?.setErrors(null);
+                .subscribe(account => {
+                    // Set the status explicitly
+                    account.status = account.status === 'Inactive' ? 'Inactive' : 'Active';
+                    this.form.patchValue(account);
+                });
         }
     }
 
@@ -94,7 +86,12 @@ export class AddEditComponent implements OnInit {
     }
 
     private createAccount() {
-        this.accountService.create(this.form.value)
+        const accountData = {
+            ...this.form.value,
+            status: this.form.get('status')?.value === 'Inactive' ? 'Inactive' : 'Active'
+        };
+
+        this.accountService.create(accountData)
             .pipe(first())
             .subscribe({
                 next: () => {
@@ -104,7 +101,7 @@ export class AddEditComponent implements OnInit {
                     });
                     this.router.navigate(['../'], { relativeTo: this.route });
                 },
-                error: error => {
+                error: (error: string) => {
                     this.alertService.error(error);
                     this.loading = false;
                 }
@@ -112,7 +109,19 @@ export class AddEditComponent implements OnInit {
     }
 
     private updateAccount() {
-        this.accountService.update(this.id!, this.form.value)
+        // Create a copy of the form value
+        const accountData = {
+            ...this.form.value,
+            status: this.form.get('status')?.value === 'Inactive' ? 'Inactive' : 'Active'
+        };
+        
+        // Remove password fields if empty to prevent overwriting existing password
+        if (!accountData.password) {
+            delete accountData.password;
+            delete accountData.confirmPassword;
+        }
+
+        this.accountService.update(this.id!, accountData)
             .pipe(first())
             .subscribe({
                 next: () => {
@@ -127,5 +136,13 @@ export class AddEditComponent implements OnInit {
                     this.loading = false;
                 }
             });
+    }
+
+    onCancel() {
+        if (this.isAddMode) {
+            this.router.navigate(['../'], { relativeTo: this.route });
+        } else {
+            this.router.navigate(['../../'], { relativeTo: this.route });
+        }
     }
 }

@@ -16,8 +16,3 @@ export const PROFILE_ROUTES: Routes = [
         ]
     }
 ];
-
-
-
-
-
