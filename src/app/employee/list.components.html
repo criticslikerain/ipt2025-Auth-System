@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Departments</title>
+  <link rel="stylesheet" href="employee.list.components.css">
+</head>
+<div class="container">
+  <h2>Employees</h2>
+  <div class="table-wrapper">
+    <table>
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Email</th>
+          <th>Position</th>
+          <th>Department</th>
+          <th>Hire Date</th>
+          <th>Status</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let employee of employees">
+          <td>{{ employee.employeeId }}</td>
+          <td>{{ employee.user?.email }}</td>
+          <td>{{ employee.position }}</td>
+          <td>{{ employee.department?.name }}</td>
+          <td>{{ employee.hireDate | date: 'shortDate' }}</td>
+          <td>
+            <span [ngClass]="employee.status === 'Active' ? 'active' : 'inactive'">
+              {{ employee.status }}
+            </span>
+          </td>
+          <td>
+            <button (click)="viewRequests(employee.id)" class="btn-action">Requests</button>
+            <button (click)="viewWorkflows(employee.id)" class="btn-action">Workflows</button>
+            <button *ngIf="account()?.role === 'Admin'" (click)="transfer(employee)" class="btn-action">Transfer</button>
+            <button (click)="edit(employee.id)" class="btn-action">Edit</button>
+            <button *ngIf="account()?.role === 'Admin'" (click)="delete(employee.id)" class="btn-delete">Delete</button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+  <button *ngIf="account()?.role === 'Admin'" class="btn-add" (click)="add()">Add Employee</button>
+</div>

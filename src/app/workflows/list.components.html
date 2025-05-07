@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Departments</title>
+  <link rel="stylesheet" href="workflow.list.components.css">
+</head>
+<body>
+<div class="card">
+    <div class="card-header">Workflows for Employee {{employeeId}}</div>
+    <div class="card-body">
+      <div class="table-responsive">
+        <table class="table table-striped">
+          <thead>
+            <tr>
+              <th>Type</th>
+              <th>Details</th>
+              <th>Status</th>
+              <th *ngIf="account()?.role === 'Admin'">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let workflow of workflows">
+              <td>{{workflow.type}}</td>
+              <td>{{workflow.details | json}}</td>
+              <td>{{workflow.status}}</td>
+              <td *ngIf="account()?.role === 'Admin'">
+                <select class="form-select d-inline-block w-auto" [(ngModel)]="workflow.status" (change)="updateStatus(workflow)">
+                  <option>Pending</option>
+                  <option>Approved</option>
+                  <option>Rejected</option>
+                </select>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
