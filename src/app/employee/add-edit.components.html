@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Departments</title>
+  <link rel="stylesheet" href="employee.add-edit.components.css">
+</head>
+<body>
+<div class="card">
+    <div class="card-header">{{id ? 'Edit' : 'Add'}} Employee</div>
+    <div class="card-body">
+      <div class="alert alert-danger" *ngIf="errorMessage">{{errorMessage}}</div>
+      <div class="mb-3">
+        <label class="form-label">Employee ID</label>
+        <input type="text" class="form-control" [(ngModel)]="employee.employeeId" [disabled]="{{!!id}}">
+      </div>
+      <div class="mb-3">
+        <label class="form-label">User</label>
+        <select class="form-select" [(ngModel)]="employee.userId">
+          <option *ngFor="let user of users" [value]="user.id">{{user.email}}</option>
+        </select>
+      </div>
+      <div class="mb-3">
+        <label class="form-label">Position</label>
+        <input type="text" class="form-control" [(ngModel)]="employee.position">
+      </div>
+      <div class="mb-3">
+        <label class="form-label">Department</label>
+        <select class="form-select" [(ngModel)]="employee.departmentId">
+          <option *ngFor="let dept of departments" [value]="dept.id">{{dept.name}}</option>
+        </select>
+      </div>
+      <div class="mb-3">
+        <label class="form-label">Hire Date</label>
+        <input type="date" class="form-control" [(ngModel)]="employee.hireDate">
+      </div>
+      <div class="mb-3">
+        <label class="form-label">Status</label>
+        <select class="form-select" [(ngModel)]="employee.status">
+          <option>Active</option>
+          <option>Inactive</option>
+        </select>
+      </div>
+      <div class="text-center">
+        <button class="btn btn-primary me-2" (click)="save()">Save</button>
+        <button class="btn btn-secondary" (click)="cancel()">Cancel</button>
+       </div>
+    </div>
+</div>

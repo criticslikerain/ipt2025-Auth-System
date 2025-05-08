@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Departments</title>
+  <link rel="stylesheet" href="department.list.components.css">
+</head>
+<body>
+<div class="card">
+    <div class="card-header">Departments</div>
+    <div class="card-body">
+      <div class="table-responsive">
+        <table class="table table-striped">
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Description</th>
+              <th>Employee Count</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let dept of departments">
+              <td>{{dept.name}}</td>
+              <td>{{dept.description}}</td>
+              <td>{{dept.employeeCount}}</td>
+              <td>
+                <button class="btn btn-sm btn-warning me-1" (click)="edit(dept.id)">Edit</button>
+                <button *ngIf="account()?.role === 'Admin'" class="btn btn-sm btn-danger" (click)="delete(dept.id)">Delete</button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <button *ngIf="account()?.role === 'Admin'" class="btn btn-primary float-end" (click)="add()">Add Department</button>
+    </div>
+  </div>
