@@ -7,12 +7,12 @@ import { AppComponent } from './app.component';
 // Services
 import { AuthService } from './_services/auth.service';
 import { AlertService } from './_services/alert.service';
-import { UserService } from './_services/user.service';
+import { AccountService } from './_services/account.service';
 
 // Interceptors
 import { jwtInterceptor } from './_helpers/jwt.interceptor';
 import { errorInterceptor } from './_helpers/error.interceptor';
-import { FakeBackendInterceptor } from './_helpers/fake-backend.interceptor';
+import { fakeBackendInterceptor } from './_helpers/fake-backend';
 
 // Components
 import { AlertComponent } from './_components/alert.component';
@@ -34,10 +34,10 @@ import { RegisterComponent } from './account/register.component';
     providers: [
         { provide: HTTP_INTERCEPTORS, useClass: jwtInterceptor, multi: true },
         { provide: HTTP_INTERCEPTORS, useClass: errorInterceptor, multi: true },
-        { provide: HTTP_INTERCEPTORS, useClass: FakeBackendInterceptor, multi: true },
+        // { provide: HTTP_INTERCEPTORS, useClass: fakeBackendInterceptor, multi: true },
         AuthService,
         AlertService,
-        UserService
+        AccountService
     ],
     bootstrap: [AppComponent]
 })
