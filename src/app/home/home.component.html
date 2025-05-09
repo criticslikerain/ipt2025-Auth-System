@@ -16,13 +16,13 @@
                     </div>
 
                     <div *ngIf="!loading && user">
-                        <h2>Hello, {{user?.firstName}}!</h2>
+                        <h2>Hello, {{user.firstName}}!</h2>
                         <p>You're logged in to the Auth System</p>
                         <div class="user-details">
-                            <p><strong>Email:</strong> {{user?.email}}</p>
-                            <p><strong>Role:</strong> {{user?.role}}</p>
-                            <p *ngIf="user?.dateCreated">
-                                <strong>Account Created:</strong> {{user?.dateCreated | date:'medium'}}
+                            <p><strong>Email:</strong> {{user.email}}</p>
+                            <p><strong>Role:</strong> {{user.role}}</p>
+                            <p *ngIf="user.dateCreated">
+                                <strong>Account Created:</strong> {{user.dateCreated | date:'medium'}}
                             </p>
                         </div>
                     </div>
